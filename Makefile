@@ -1,7 +1,7 @@
 
 NAME = ft_ssl
 
-SRCS = $(addprefix src/, main.c fun.c) 
+SRCS = $(addprefix src/, main.c fun.c parse.c md5.c) 
 
 OBJS = $(SRCS:.c=.o)
 

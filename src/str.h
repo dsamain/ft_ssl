@@ -6,6 +6,9 @@
 #define PUT_ERR(x) write(2, x, ft_strlen(x))
 #define throw(x) {PUT_ERR(x); exit(1);}
 
+#define BUFF_SIZE 1024
+#define FLAG_Q 1
+#define FLAG_R 2
 
 static inline int ft_strlen(char *s) {
     int i = 0;
