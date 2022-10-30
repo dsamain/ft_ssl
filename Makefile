@@ -1,7 +1,7 @@
 
 NAME = ft_ssl
 
-SRCS = $(addprefix src/, main.c fun.c parse.c md5.c) 
+SRCS = $(addprefix src/, main.c common.c parse.c md5.c sha224.c sha256.c sha384.c sha512.c) 
 
 OBJS = $(SRCS:.c=.o)
 

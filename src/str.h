@@ -1,14 +1,17 @@
 #pragma once
 
 #include <stdlib.h>
+#include <stdarg.h>
 
 #define PUT(x) write(1, x, ft_strlen(x))
 #define PUT_ERR(x) write(2, x, ft_strlen(x))
 #define throw(x) {PUT_ERR(x); exit(1);}
+#define cat(...) (cat_f(__VA_ARGS__, NULL))
 
 #define BUFF_SIZE 1024
 #define FLAG_Q 1
 #define FLAG_R 2
+
 
 static inline int ft_strlen(char *s) {
     int i = 0;
@@ -30,6 +33,17 @@ static inline char *ft_join(char *s, char *t) {
         ret[i] = t[j];
     ret[i] = 0;
     return ret;
+}
+
+static inline char *cat_f(char *s, ...) {
+    va_list l;
+    va_start(l, s);
+    char *tmp = NULL;
+    do {
+        s = ft_join(s, tmp);
+    } while ((tmp = va_arg(l, char *)));
+    va_end(l);
+    return s;
 }
 
 static inline int ft_strcmp(char *s, char *t) {

@@ -17,6 +17,7 @@ char *read_fd(int fd) {
 
 t_args *parse(int ac, char **av, int *flags) {
     t_args *ret = NULL;
+    u_int8_t f = 0;
     int i;
 
     // read flags
@@ -24,36 +25,43 @@ t_args *parse(int ac, char **av, int *flags) {
         if (!ft_strcmp(av[i], "-r")) {
             *flags |= FLAG_R;
         } else if (!ft_strcmp(av[i], "-q")) {
-            *flags |= FLAG_R;
+            *flags |= FLAG_Q;
         } else if (!ft_strcmp(av[i], "-s")) {
             if (i == ac - 1)
-                throw(ft_join("ft_ssl: ", ft_join(av[1], ": Expeted a string after -s.\nexample: ft_ssl command -s \"pouet\"\n")));
+                throw(cat("ft_ssl: ", av[1], ": Expeted a string after -s.\nexample: ft_ssl command -s \"pouet\"\n"));
             push_args(&ret);
-            ret->source = ft_join(to_upper(av[1]), ft_join(" (\"", ft_join(av[i + 1], "\")")));    
-            ret->content = ft_join(av[i + 1], NULL);
+            ret->source = cat((*flags & FLAG_R ? "" : to_upper(av[1])), "(\"", av[i + 1], "\")");    
+            ret->content = cat(av[i + 1]);
             i++;
+            f |= 1;
         } else if (!ft_strcmp(av[i], "-p")) {
             push_args(&ret);
             ret->content = read_fd(0);
-            ret->source = ft_join("(\"", ft_join(ret->content, "\")"));
-        }
+            ret->source = cat(ret->content);
+            ret->source[ft_strlen(ret->source) - 1] = 0;
+            ret->source = cat("(\"", ret->source, "\")");
+            f |= 1;
+        } else if (!ft_strcmp(av[i], "-h")) {
+            help();
+            exit(0);
+        } 
     }
 
     // read files
-    if (i == ac) {
+    if (i == ac && !f) {
             push_args(&ret);
             ret->content = read_fd(0);
-            ret->source = ft_join("(stdin)", NULL);
+            ret->source = cat("(stdin)");
     } else {
         for (; i < ac; i++) {
             int fd = open(av[i], O_RDONLY);
             if (fd < 0) {
-                PUT_ERR(ft_join("ft_ssl: ", ft_join(av[1], ft_join(": ", ft_join(av[i], ": No such file or directory\n")))));
+                PUT_ERR(cat("ft_ssl: ", av[1], ": ", av[i], ": No such file or directory\n"));
                 continue;
             } 
             push_args(&ret);
             ret->content = read_fd(fd);
-            ret->source = ft_join(to_upper(av[1]), ft_join("(", ft_join(av[i], ")")));    
+            ret->source = cat((*flags & FLAG_R ? "" : to_upper(av[1])), "(", av[i], ")");    
             close(fd);
         }
     }

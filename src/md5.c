@@ -28,28 +28,14 @@ static u_int32_t K[] = {0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee,
 #define H(B,C,D) (B ^ C ^ D)
 #define I(B,C,D) (C ^ (B | (~D)))
 
-u_int8_t *padding(char *s, size_t *len) {
-    u_int64_t sz = ft_strlen(s);
-    u_int32_t tot = sz + 9; // 8 bits fot the size + 1 bit for the 1
-    tot += (tot % 64) ? (64 - tot % 64) : 0;
-
-    u_int8_t *ret = ft_malloc(tot + 1);
-    for (int i = 0; i < tot; i++)
-        ret[i] = (i < sz ? s[i] : 0);
-
-    ret[sz] = 0x80; // 1 at the end of the message
-    // size in little endian at the end
-    sz *= 8;
-    for (int i = 0; i < 8; i++)
-        ret[tot - 8 + i] = (sz >> (i * 8)) & 0xff;
-    *len = tot;
-    return ret;
-}
-
 char *md5(char *s) {
     u_int32_t ret[4] = {0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476}; // default values for md5
-    size_t len;
+    size_t len, sz = ft_strlen(s) * 8;
     u_int8_t *t = padding(s, &len);
+
+    //size in little endian
+    for (int i = 0; i < 8; i++)
+        t[len - 8 + i] = (sz >> (i * 8)) & 0xff;
 
     while (len) {
         u_int32_t w[16] = {0};
