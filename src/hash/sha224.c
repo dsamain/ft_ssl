@@ -1,4 +1,4 @@
-#include "../ft_ssl.h"
+#include "../../ft_ssl.h"
 
 
 #define ch(x, y, z) ((x & y) ^ (~x & z))
@@ -23,10 +23,10 @@ static u_int32_t k[64] = {
 		0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
 	};
 
-char *sha256(char *s) {
+char *sha224(char *s) {
     u_int32_t H[8] = {
-        0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
-        0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
+        0xc1059ed8, 0x367cd507, 0x3070dd17, 0xf70e5939,
+        0xffc00b31, 0x68581511, 0x64f98fa7, 0xbefa4fa4
     };
 
     size_t len;
@@ -78,8 +78,8 @@ char *sha256(char *s) {
         padded += 64;
         len -= 64;
     }
-    u_int8_t *result = ft_malloc(32); 
-    for (int i = 0; i < 8; i++) {
+    u_int8_t *result = ft_malloc(28); 
+    for (int i = 0; i < 7; i++) {
         result[i * 4 + 0] = (H[i] >> 24) & 0xff;
         result[i * 4 + 1] = (H[i] >> 16) & 0xff;
         result[i * 4 + 2] = (H[i] >> 8) & 0xff;

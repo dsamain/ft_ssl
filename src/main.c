@@ -1,14 +1,21 @@
 #include "../ft_ssl.h"
 
-t_command g_commands[5] = {
+t_command g_hash[5] = {
     {"md5", md5, 16}, 
-    {"sha224", sha224, 28},
-    {"sha256", sha256, 32},
-    {"sha384", sha384, 48},
-    {"sha512", sha512, 64},
+    {"sha224", sha224, 28, "pqrs"}, 
+    {"sha256", sha256, 32, "pqrs"}, 
+    {"sha384", sha384, 48, "pqrs"}, 
+    {"sha512", sha512, 64, "pqrs"},
 };
 
-void show(t_command command, t_args args, int flags) {
+t_command g_encode[4] = {
+    {"base64", NULL, 0, "deio"}, 
+    {"des", NULL, 0, "adeikopsv"}, 
+    {"des-ecb", NULL, 0, "adeikopsv"}, 
+    {"des-cbc", NULL, 0, "adeikopsv"},
+};
+
+void show_hash(t_command command, t_hash_args args, int flags) {
 
     if (flags & FLAG_Q) {
         put_hex(args.output, command.output_size);
@@ -25,6 +32,20 @@ void show(t_command command, t_args args, int flags) {
     PUT("\n");
 }
 
+void hash(t_command *command, int ac, char **av) {
+    int flags = 0;
+    t_hash_args *args = parse_hash(ac, av, &flags);
+    while (args) {
+        args->output = command->f(args->content);
+        show_hash(*command, *args, flags);
+        args = args->next;
+    }
+}
+
+void encode(t_command *command, int ac, char **av) {
+    // TODO
+}
+
 
 int main(int ac, char **av) {
     
@@ -33,15 +54,12 @@ int main(int ac, char **av) {
         return 0;
     }
     
-    t_command *command = find_command(av[1]);
-    if (!command) {
+    t_command *command;
+    if ((command = find_command(av[1], g_hash, sizeof(g_hash)))) {
+        hash(command, ac, av);
+    } else if ((command = find_command(av[1], g_encode, sizeof(g_encode)))) {
+        encode(command, ac, av);
+    } else {
         throw(cat("ft_ssl: \"", av[1], "\" is an invalid command.\n"));
-    }
-    int flags = 0;
-    t_args *args = parse(ac, av, &flags);
-    while (args) {
-        args->output = command->f(args->content);
-        show(*command, *args, flags);
-        args = args->next;
     }
 }

@@ -3,8 +3,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include "src/str.h"
-
 
 #define DEBUG
 
@@ -16,6 +14,25 @@
     #define dbg(x)
 #endif
 
+#define PUT(x) write(1, x, ft_strlen(x))
+#define PUT_ERR(x) write(2, x, ft_strlen(x))
+#define throw(x) {PUT_ERR(x); exit(1);}
+#define cat(...) (cat_f(__VA_ARGS__, NULL))
+
+#define BUFF_SIZE 1024
+
+#define FLAG_Q (1 << 0)
+#define FLAG_R (1 << 1)
+#define FLAG_A (1 << 2)
+#define FLAG_D (1 << 2)
+#define FLAG_E (1 << 2)
+#define FLAG_I (1 << 2)
+#define FLAG_K (1 << 2)
+#define FLAG_O (1 << 2)
+#define FLAG_P (1 << 2)
+#define FLAG_S (1 << 2)
+#define FLAG_V (1 << 2)
+
 #define little_endian(x) ((x & 0xff) << 24) | ((x & 0xff00) << 8) | ((x & 0xff0000) >> 8) | ((x & 0xff000000) >> 24)
 #define left_rotate(x, y) ((x << y) | (x >> (32 - y))) 
 #define right_rotate(x, n) ((x >> n) | (x << (32 - n)))
@@ -25,69 +42,44 @@ typedef struct s_commmand {
     char *name;
     char *(*f)(char *s);
     size_t output_size;    
+    char *available_flags;
 } t_command;
 
-typedef struct s_args {
+typedef struct s_hash_args {
     char            *source;
     char            *content;
     u_int8_t        *output;
-    struct s_args   *next;
-} t_args;
+    struct s_hash_args   *next;
+} t_hash_args;
 
-extern t_command g_commands[5];
+extern t_command g_hash[5];
+extern t_command g_encode[4];
 
-static inline void put_hex(u_int8_t *a, int size) {
-    char base[16] = "0123456789abcdef";
-    for (int i = 0; i < size; i++) {
-        write(1, &base[a[i] >> 4], 1);
-        write(1, &base[a[i] & 0xf], 1);
-    }
-}
+// common
+t_command *find_command(char *s, t_command *commands, size_t command_size);
+void put_hex(u_int8_t *a, int size);
+void putb(unsigned int n);
+void push_hash_args(t_hash_args **args);
+void *ft_malloc(size_t size);
+int help();
 
-static inline void putb(unsigned int n) {
-    if (n > 1) putb(n>>1);
-    write(1, &"01"[n&1], 1);
-}
+// parsing
+t_hash_args *parse_hash(int ac, char **av, int *flags);
 
-static inline t_command *find_command(char *s) {
-    for (int i = 0; i < sizeof(g_commands) / sizeof(t_command); i++) {
-        if (!ft_strcmp(g_commands[i].name, s))
-            return g_commands + i;
-    }
-    return NULL;
-}
-
-static inline void push_args(t_args **args) {
-    t_args *new = malloc(sizeof(t_args)); 
-    *new = (t_args){0, 0, 0, (*args ? *args : NULL)};
-    *args = new;
-}
-
-static inline int help() {
-    PUT("\nUsage:\n");
-    PUT("  ft_ssl command [command opts] [command args]\n");
-    PUT("\nOptions:\n");
-    PUT("  -s  print the sum of the given string.\n");
-    PUT("  -p  echo STDIN to STDOUT and append the checksum to STDOUT.\n");
-    PUT("  -r  reverse the format of the output.\n");
-    PUT("  -q  quiet mode.\n");
-
-    return (0);
-}
-
-static inline void *ft_malloc(size_t size) {
-    void *ret = malloc(size);
-    if (!ret) throw("malloc error");
-    return ret;
-}
-
-t_args *parse(int ac, char **av, int *flags);
-
-u_int8_t *padding(char *s, size_t *len);
-u_int8_t *padding_512(char *s, size_t *len);
-
+// hash
 char *md5(char *s);
 char *sha224(char *s);
 char *sha256(char *s);
 char *sha384(char *s);
 char *sha512(char *s);
+
+// padding
+u_int8_t *padding(char *s, size_t *len);
+u_int8_t *padding_512(char *s, size_t *len);
+
+// str
+char *to_upper(char *s);
+int ft_strcmp(char *s, char *t);
+char *cat_f(char *s, ...);
+char *ft_join(char *s, char *t);
+int ft_strlen(char *s);

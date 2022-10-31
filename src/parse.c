@@ -15,8 +15,8 @@ char *read_fd(int fd) {
 }
 
 
-t_args *parse(int ac, char **av, int *flags) {
-    t_args *ret = NULL;
+t_hash_args *parse_hash(int ac, char **av, int *flags) {
+    t_hash_args *ret = NULL;
     u_int8_t f = 0;
     int i;
 
@@ -29,13 +29,13 @@ t_args *parse(int ac, char **av, int *flags) {
         } else if (!ft_strcmp(av[i], "-s")) {
             if (i == ac - 1)
                 throw(cat("ft_ssl: ", av[1], ": Expeted a string after -s.\nexample: ft_ssl command -s \"pouet\"\n"));
-            push_args(&ret);
+            push_hash_args(&ret);
             ret->source = cat((*flags & FLAG_R ? "" : to_upper(av[1])), "(\"", av[i + 1], "\")");    
             ret->content = cat(av[i + 1]);
             i++;
             f |= 1;
         } else if (!ft_strcmp(av[i], "-p")) {
-            push_args(&ret);
+            push_hash_args(&ret);
             ret->content = read_fd(0);
             ret->source = cat(ret->content);
             ret->source[ft_strlen(ret->source) - 1] = 0;
@@ -49,7 +49,7 @@ t_args *parse(int ac, char **av, int *flags) {
 
     // read files
     if (i == ac && !f) {
-            push_args(&ret);
+            push_hash_args(&ret);
             ret->content = read_fd(0);
             ret->source = cat("(stdin)");
     } else {
@@ -59,7 +59,7 @@ t_args *parse(int ac, char **av, int *flags) {
                 PUT_ERR(cat("ft_ssl: ", av[1], ": ", av[i], ": No such file or directory\n"));
                 continue;
             } 
-            push_args(&ret);
+            push_hash_args(&ret);
             ret->content = read_fd(fd);
             ret->source = cat((*flags & FLAG_R ? "" : to_upper(av[1])), "(", av[i], ")");    
             close(fd);

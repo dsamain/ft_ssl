@@ -1,41 +1,56 @@
 #include "../ft_ssl.h"
 
-u_int8_t *padding(char *s, size_t *len) {
-    u_int64_t sz = ft_strlen(s);
-    u_int32_t tot = sz + 9; // 8 bits fot the size + 1 bit for the 1
-    tot += (tot % 64) ? (64 - tot % 64) : 0;
-
-    u_int8_t *ret = ft_malloc(tot + 1);
-    for (int i = 0; i < tot; i++)
-        ret[i] = (i < sz ? s[i] : 0);
-
-    ret[sz] = 0x80; // 1 at the end of the message
-    // size in little endian at the end
-    sz *= 8;
-
-    for (int i = 0; i < 8; i++)
-        ret[tot - i - 1] = (sz >> (i * 8)) & 0xff;
-
-    *len = tot;
-    return ret;
+void put_hex(u_int8_t *a, int size) {
+    char base[16] = "0123456789abcdef";
+    for (int i = 0; i < size; i++) {
+        write(1, &base[a[i] >> 4], 1);
+        write(1, &base[a[i] & 0xf], 1);
+    }
 }
 
-u_int8_t *padding_512(char *s, size_t *len) {
-    u_int64_t sz = ft_strlen(s);
-    u_int64_t tot = sz + 17; // 8 bits fot the size + 1 bit for the 1
-    tot += (tot % 128) ? (128 - tot % 128) : 0;
+void putb(unsigned int n) {
+    if (n > 1) putb(n>>1);
+    write(1, &"01"[n&1], 1);
+}
 
-    u_int8_t *ret = ft_malloc(tot + 1);
-    for (int i = 0; i < tot; i++)
-        ret[i] = (i < sz ? s[i] : 0);
+int help() {
+    PUT("Usage:\n");
+    PUT("  ft_ssl command [command opts] [command args]\n");
+    PUT("\nMessage Digest commands:\n");
+    PUT("  md5\n");
+    PUT("  sha224\n");
+    PUT("  sha256\n");
+    PUT("  sha384\n");
+    PUT("  sha512\n");
+    PUT("\nCipher commands:\n");
+    PUT("  base64\n");
+    PUT("  des\n");
+    PUT("\nOptions:\n");
+    PUT("  -s  print the sum of the given string.\n");
+    PUT("  -p  echo STDIN to STDOUT and append the checksum to STDOUT.\n");
+    PUT("  -r  reverse the format of the output.\n");
+    PUT("  -q  quiet mode.\n");
 
-    ret[sz] = 0x80; // 1 at the end of the message
-    // size in little endian at the end
-    sz *= 8;
+    return (0);
+}
 
-    for (int i = 0; i < 8; i++)
-        ret[tot - i - 1] = (sz >> (i * 8)) & 0xff;
+t_command *find_command(char *name, t_command *commands, size_t commands_size) {
+    for (int i = 0; i < commands_size / sizeof(t_command); i++) {
+        if (!ft_strcmp(name, commands[i].name))
+            return commands + i;
+    }
+    return NULL;
+}
 
-    *len = tot;
+void push_hash_args(t_hash_args **args) {
+    t_hash_args *new = malloc(sizeof(t_hash_args)); 
+    *new = (t_hash_args){0, 0, 0, (*args ? *args : NULL)};
+    *args = new;
+}
+
+
+void *ft_malloc(size_t size) {
+    void *ret = malloc(size);
+    if (!ret) throw("malloc error");
     return ret;
 }
