@@ -16,7 +16,7 @@
 
 #define PUT(x) write(1, x, ft_strlen(x))
 #define PUT_ERR(x) write(2, x, ft_strlen(x))
-#define throw(x) {PUT_ERR(x); exit(1);}
+#define throw(x) {PUT_ERR("Error: "); PUT_ERR(x); exit(1);}
 #define cat(...) (cat_f(__VA_ARGS__, NULL))
 
 #define BUFF_SIZE 1024
@@ -52,19 +52,29 @@ typedef struct s_hash_args {
     struct s_hash_args   *next;
 } t_hash_args;
 
+typedef struct t_cipher_args {
+    u_int64_t iv; // initial permutation
+    u_int64_t key;
+    char *content;
+    char *output;
+} t_cipher_args;
+
 extern t_command g_hash[5];
-extern t_command g_encode[4];
+extern t_command g_cipher[4];
 
 // common
 t_command *find_command(char *s, t_command *commands, size_t command_size);
+void permute_in_place(int8_t *data, int8_t *perm, int size);
 void put_hex(u_int8_t *a, int size);
-void putb(unsigned int n);
+void putb(u_int64_t n);
 void push_hash_args(t_hash_args **args);
 void *ft_malloc(size_t size);
+u_int64_t str_to_u64(char *s);
 int help();
 
 // parsing
 t_hash_args *parse_hash(int ac, char **av, int *flags);
+
 
 // hash
 char *md5(char *s);
@@ -73,6 +83,9 @@ char *sha256(char *s);
 char *sha384(char *s);
 char *sha512(char *s);
 
+// cipher
+u_int8_t *des_ecb(t_cipher_args *args);
+
 // padding
 u_int8_t *padding(char *s, size_t *len);
 u_int8_t *padding_512(char *s, size_t *len);
@@ -80,6 +93,7 @@ u_int8_t *padding_512(char *s, size_t *len);
 // str
 char *to_upper(char *s);
 int ft_strcmp(char *s, char *t);
-char *cat_f(char *s, ...);
 char *ft_join(char *s, char *t);
 int ft_strlen(char *s);
+char *ft_strchr(char *s, char c);
+char *cat_f(char *s, ...);

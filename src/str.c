@@ -49,3 +49,10 @@ char *to_upper(char *s) {
     }
     return ret;
 }
+
+char *ft_strchr(char *s, char c) {
+    for (int i = 0; s[i]; i++)
+        if (s[i] == c)
+            return s + i;
+    return NULL;
+}

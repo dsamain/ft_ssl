@@ -14,6 +14,9 @@ char *read_fd(int fd) {
     return ret;
 }
 
+void parse_cipher(int ac, char **av, int *flags) {
+    // TODO
+}
 
 t_hash_args *parse_hash(int ac, char **av, int *flags) {
     t_hash_args *ret = NULL;

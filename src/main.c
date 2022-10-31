@@ -8,7 +8,7 @@ t_command g_hash[5] = {
     {"sha512", sha512, 64, "pqrs"},
 };
 
-t_command g_encode[4] = {
+t_command g_cipher[4] = {
     {"base64", NULL, 0, "deio"}, 
     {"des", NULL, 0, "adeikopsv"}, 
     {"des-ecb", NULL, 0, "adeikopsv"}, 
@@ -42,12 +42,21 @@ void hash(t_command *command, int ac, char **av) {
     }
 }
 
-void encode(t_command *command, int ac, char **av) {
+void cipher(t_command *command, int ac, char **av) {
     // TODO
 }
 
 
 int main(int ac, char **av) {
+
+    printf("num : %lx\n", str_to_u64("1a"));
+
+    t_cipher_args args;
+
+    args.content = "test";
+    args.key = 0;
+
+    des_ecb(&args);
     
     if (ac == 1) {
         help();
@@ -57,8 +66,8 @@ int main(int ac, char **av) {
     t_command *command;
     if ((command = find_command(av[1], g_hash, sizeof(g_hash)))) {
         hash(command, ac, av);
-    } else if ((command = find_command(av[1], g_encode, sizeof(g_encode)))) {
-        encode(command, ac, av);
+    } else if ((command = find_command(av[1], g_cipher, sizeof(g_cipher)))) {
+        cipher(command, ac, av);
     } else {
         throw(cat("ft_ssl: \"", av[1], "\" is an invalid command.\n"));
     }

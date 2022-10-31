@@ -8,7 +8,7 @@ void put_hex(u_int8_t *a, int size) {
     }
 }
 
-void putb(unsigned int n) {
+void putb(u_int64_t n) {
     if (n > 1) putb(n>>1);
     write(1, &"01"[n&1], 1);
 }
@@ -35,10 +35,10 @@ int help() {
 }
 
 t_command *find_command(char *name, t_command *commands, size_t commands_size) {
-    for (int i = 0; i < commands_size / sizeof(t_command); i++) {
+    for (int i = 0; i < commands_size / sizeof(t_command); i++)
         if (!ft_strcmp(name, commands[i].name))
             return commands + i;
-    }
+
     return NULL;
 }
 
@@ -48,9 +48,19 @@ void push_hash_args(t_hash_args **args) {
     *args = new;
 }
 
-
 void *ft_malloc(size_t size) {
     void *ret = malloc(size);
     if (!ret) throw("malloc error");
+    return ret;
+}
+
+u_int64_t str_to_u64(char *s) {
+    char *base = "0123456789abcdef";
+    u_int64_t ret = 0;
+    for (int i = 0; s[i]; i++) {
+        char *p = ft_strchr(base, s[i]);
+        if (!p) throw("Invalid char in str_to_u64\n");
+        ret = ret * 16 + (p - base);
+    }
     return ret;
 }
