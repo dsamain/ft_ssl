@@ -24,14 +24,14 @@
 #define FLAG_Q (1 << 0)
 #define FLAG_R (1 << 1)
 #define FLAG_A (1 << 2)
-#define FLAG_D (1 << 2)
-#define FLAG_E (1 << 2)
-#define FLAG_I (1 << 2)
-#define FLAG_K (1 << 2)
-#define FLAG_O (1 << 2)
-#define FLAG_P (1 << 2)
-#define FLAG_S (1 << 2)
-#define FLAG_V (1 << 2)
+#define FLAG_D (1 << 3)
+#define FLAG_E (1 << 4)
+#define FLAG_I (1 << 5)
+#define FLAG_K (1 << 6)
+#define FLAG_O (1 << 7)
+#define FLAG_P (1 << 8)
+#define FLAG_S (1 << 9)
+#define FLAG_V (1 << 10)
 
 #define little_endian(x) ((x & 0xff) << 24) | ((x & 0xff00) << 8) | ((x & 0xff0000) >> 8) | ((x & 0xff000000) >> 24)
 #define left_rotate(x, y) ((x << y) | (x >> (32 - y))) 
@@ -52,11 +52,15 @@ typedef struct s_hash_args {
     struct s_hash_args   *next;
 } t_hash_args;
 
+#define INIT_CIPHER_ARGS {0, 0, 0, 0, 1}
+
 typedef struct t_cipher_args {
     u_int64_t iv; // initial permutation
     u_int64_t key;
-    char *content;
+    char *text;
     char *output;
+    int out_fd;
+
 } t_cipher_args;
 
 extern t_command g_hash[5];
@@ -64,9 +68,12 @@ extern t_command g_cipher[4];
 
 // common
 t_command *find_command(char *s, t_command *commands, size_t command_size);
-void permute_in_place(int8_t *data, int8_t *perm, int size);
+void permute_in_place(int8_t *blocks, int8_t *perm, int size);
 void put_hex(u_int8_t *a, int size);
+void put_hex_n(u_int64_t a, int size);
 void putb(u_int64_t n);
+void putb_u64(u_int64_t n);
+void putb_n(u_int64_t n, int size);
 void push_hash_args(t_hash_args **args);
 void *ft_malloc(size_t size);
 u_int64_t str_to_u64(char *s);
@@ -74,6 +81,7 @@ int help();
 
 // parsing
 t_hash_args *parse_hash(int ac, char **av, int *flags);
+t_cipher_args parse_cipher(int ac, char **av, int *flags);
 
 
 // hash
@@ -84,7 +92,7 @@ char *sha384(char *s);
 char *sha512(char *s);
 
 // cipher
-u_int8_t *des_ecb(t_cipher_args *args);
+u_int8_t *des_ecb(t_cipher_args *args, int flags);
 
 // padding
 u_int8_t *padding(char *s, size_t *len);
@@ -97,3 +105,4 @@ char *ft_join(char *s, char *t);
 int ft_strlen(char *s);
 char *ft_strchr(char *s, char c);
 char *cat_f(char *s, ...);
+char ft_tolower(char c);

@@ -14,8 +14,64 @@ char *read_fd(int fd) {
     return ret;
 }
 
-void parse_cipher(int ac, char **av, int *flags) {
-    // TODO
+//typedef struct t_cipher_args {
+    //u_int64_t iv; // initial permutation
+    //u_int64_t key;
+    //char *text;
+    //char *output;
+//} t_cipher_args;
+
+
+u_int64_t parse_key(char *key) {
+    u_int64_t ret = 0;
+    size_t len = ft_strlen(key);
+    char *base = "0123456789ABCDEF";
+    for (int i = 0; i < 16; i++) {
+        ret <<= 4;
+        if (i < len) {
+            char *p = ft_strchr(base, ft_tolower(key[i]));
+            ret |= (p - base) & 1;
+        }
+    }
+    return ret;
+}
+
+
+t_cipher_args parse_cipher(int ac, char **av, int *flags) {
+    t_cipher_args ret = INIT_CIPHER_ARGS;
+
+    for (int i = 2; i < ac && av[i][0] == '-'; i++) {
+        if (!ft_strcmp(av[i], "-e")) {
+            *flags |= FLAG_E;
+        } else if (!ft_strcmp(av[i], "-d")) {
+            *flags |= FLAG_D;
+        } else if (!ft_strcmp(av[i], "-k")) { // key in hex
+            if (i + 1 >= ac) throw("Missing key\n");
+            ret.key = parse_key(av[++i]);
+        } else if (!ft_strcmp(av[i], "-i")) { // input file
+            *flags |= FLAG_I;
+            if (i + 1 >= ac) throw("Missing input file\n");
+            int fd = open(av[i + 1], O_RDONLY);
+            if (fd < 0) throw(cat("ft_ssl: ", av[1], ": ", av[i], ": No such file or directory\n"));
+            ret.text = read_fd(fd);
+            i++;
+        } else if (!ft_strcmp(av[i], "-o")) {
+            if (i + 1 >= ac) throw("Missing output file\n");
+            ret.out_fd = open(av[i + 1], O_WRONLY | O_CREAT | O_TRUNC, 0);
+            if (ret.out_fd < 0) throw(cat("ft_ssl: ", av[1], ": ", av[i], ": No such file or directory\n"));
+            i++;
+        } else {
+            throw(cat("ft_ssl: ", av[1], ": ", av[i], ": Invalid option\n"));
+        }
+    }
+
+    printf("ret fd : %d\n", ret.out_fd);
+    if (!flags & FLAG_I) {
+        PUT("Enter text to encrypt : \n");
+        ret.text = read_fd(0);
+    }
+
+    return ret;
 }
 
 t_hash_args *parse_hash(int ac, char **av, int *flags) {

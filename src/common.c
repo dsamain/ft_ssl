@@ -8,10 +8,24 @@ void put_hex(u_int8_t *a, int size) {
     }
 }
 
+void put_hex_n(u_int64_t a, int size) {
+    char base[16] = "0123456789abcdef";
+    for (int i = 0; i < size / 4; i++) {
+        write(1, &base[(a >> (size - (i + 1) * 4)) & 0xf], 1);
+    }
+}
+
 void putb(u_int64_t n) {
     if (n > 1) putb(n>>1);
     write(1, &"01"[n&1], 1);
 }
+
+void putb_n(u_int64_t n, int size) {
+    for (int i = size - 1; i >= 0; i--) {
+        write(1, &"01"[(n >> i) & 1], 1);
+    }
+}
+
 
 int help() {
     PUT("Usage:\n");

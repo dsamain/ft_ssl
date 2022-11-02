@@ -42,6 +42,11 @@ int ft_strcmp(char *s, char *t) {
     return s[i] - t[i]; 
 }
 
+char ft_tolower(char c) {
+    if (c >= 'A' && c <= 'Z')
+        return c + 32;
+}
+
 char *to_upper(char *s) {
     char *ret = ft_join(s, NULL);
     for (int i = 0; ret[i]; i++) {

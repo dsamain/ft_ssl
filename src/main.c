@@ -43,21 +43,20 @@ void hash(t_command *command, int ac, char **av) {
 }
 
 void cipher(t_command *command, int ac, char **av) {
-    // TODO
+    int flags = 0;
+    t_cipher_args args = parse_cipher(ac, av, &flags);
+
+    des_ecb(&args, flags);
 }
 
 
 int main(int ac, char **av) {
 
-    printf("num : %lx\n", str_to_u64("1a"));
-
-    t_cipher_args args;
-
-    args.content = "test";
-    args.key = 0;
-
-    des_ecb(&args);
+    //printf("num: \n");
+    //putb(str_to_u64("8888"));
+    //PUT("\n");
     
+
     if (ac == 1) {
         help();
         return 0;
