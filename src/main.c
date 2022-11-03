@@ -9,10 +9,10 @@ t_command g_hash[5] = {
 };
 
 t_command g_cipher[4] = {
-    {"base64", NULL, 0, "deio"}, 
-    {"des", NULL, 0, "adeikopsv"}, 
-    {"des-ecb", NULL, 0, "adeikopsv"}, 
-    {"des-cbc", NULL, 0, "adeikopsv"},
+    {"base64", base64, 0, "deio"}, 
+    {"des", des, 0, "adeikopsv"}, 
+    {"des-ecb", des, 0, "adeikopsv"}, 
+    {"des-cbc", des, 0, "adeikopsv"},
 };
 
 void show_hash(t_command command, t_hash_args args, int flags) {
@@ -36,7 +36,7 @@ void hash(t_command *command, int ac, char **av) {
     int flags = 0;
     t_hash_args *args = parse_hash(ac, av, &flags);
     while (args) {
-        args->output = command->f(args->content);
+        args->output = ((char *(*)(char*))command->f)(args->content);
         show_hash(*command, *args, flags);
         args = args->next;
     }
@@ -46,7 +46,7 @@ void cipher(t_command *command, int ac, char **av) {
     int flags = 0;
     t_cipher_args args = parse_cipher(ac, av, &flags);
 
-    des_ecb(&args, flags);
+    ((void(*)(t_cipher_args *, int))command->f)(&args, flags);
 }
 
 

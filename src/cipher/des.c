@@ -1,10 +1,7 @@
 #include "../../ft_ssl.h"
 
-#define at(x, i, size) ((x >> (size - (i) - 1)) & 1)
-#define assign(x, shift, val) (x = (x & ~((u_int64_t)1 << shift)) ^ ((u_int64_t)val << shift))
 
 // circular left shift
-#define c_left_shift(x, shift, size) (((x << shift) | (x >> (size - shift))) & ((1 << size) - 1))
 
 u_int8_t key_p[56] = { 57, 49, 41, 33, 25, 17, 9,  1,  58, 50, 42, 34,
                       26, 18, 10, 2,  59, 51, 43, 35, 27, 19, 11, 3,
@@ -93,17 +90,16 @@ u_int8_t per[32] = { 16, 7, 20, 21, 29, 12, 28, 17, 1, 15, 23,
 		        3, 9, 19, 13, 30, 6, 22, 11, 4, 25 };
 
 
-void permute(int8_t *blocks, int8_t *perm, int size) {
-    for (int i = 0; i < size; i++) {
-        int8_t tmp = blocks[i];
-        while (perm[i] >= 0) {
-            blocks[i] = perm[perm[i] - 1] >= 0 ? blocks[perm[i] - 1] : tmp;
-            perm[i] *= -1;
-            i = -perm[i] - 1;
+void show_des(u_int64_t *blocks, int len, int fd, int flags) {
+    for (int i = 0; i < len; i++) {
+        for (int j = 0; j < 8; j++) {
+            unsigned char c = (blocks[i] >> (56 - j * 8)) & 0xff;
+            if (c == 8 - j && c == (blocks[i] & 0xff) && (flags & FLAG_D) && i == len-1) {
+                    return;
+            }
+            write(fd, &c, 1);
         }
     }
-    for (int i = 0; i < size; i++) 
-        perm[i] *= -1;
 }
 
 u_int64_t permute_u64(u_int64_t n, int8_t *perm, int in_size, int out_size) {
@@ -115,7 +111,7 @@ u_int64_t permute_u64(u_int64_t n, int8_t *perm, int in_size, int out_size) {
     return res;
 } 
 
-void key_gen(u_int64_t key, u_int64_t *rkeys) {
+void rounded_key_gen(u_int64_t key, u_int64_t *rkeys, int flags) {
     key = permute_u64(key, key_p, 64, 56);
 
     u_int64_t l = (key >> (28)) & ((1 << 28) - 1);
@@ -131,17 +127,41 @@ void key_gen(u_int64_t key, u_int64_t *rkeys) {
 
         rkeys[i] = rkey;
     }
+
+    // reverse keys for decryption
+    if (flags & FLAG_D) {
+        //printf("reversing keys\n");
+        for (int i = 0; i < 16 / 2; i++) {
+            u_int64_t tmp = rkeys[i];
+            rkeys[i] = rkeys[15 - i];
+            rkeys[15 - i] = tmp;
+        }
+    }
 }
 
-void text_to_blocks(char *text, size_t len, u_int64_t *blocks) {
+void text_to_blocks(u_int8_t *text, size_t len, u_int64_t *blocks) {
     int i;
     for (i = 0; i < len / 8 ; i++)
         for (int j = 0; j < 8; j++)
             blocks[i] = (blocks[i] << 8) | text[i * 8 + j];
 
-    // padding for last block
+    // padding for last block with size
     for (int j = 0; j < 8; j++)
         blocks[i] = (blocks[i] << 8) | (len % 8 > j ? text[i * 8 + j] : 8 - len % 8);
+
+    // padding for last block with 0
+    //for (int j = 0; j < 8; j++)
+        //blocks[i] = (blocks[i] << 8) | (len % 8 > j ? text[i * 8 + j] : 0);
+}
+
+char *blocks_to_text(u_int64_t *blocks, size_t block_len) {
+    char *ret = ft_malloc(block_len * 8 + 1);
+
+    for (int i = 0; i < block_len; i++)
+        for (int j = 0; j < 8; j++)
+            ret[i * 8 + j] = (blocks[i] >> (56 - j * 8)) & 0xff;
+
+    return ret;
 }
 
 u_int64_t encrypt(u_int64_t block, u_int64_t *rkeys) {
@@ -173,13 +193,10 @@ u_int64_t encrypt(u_int64_t block, u_int64_t *rkeys) {
 		sbox_out = permute_u64(sbox_out, per, 32, 32);
         sbox_out &= ((u_int64_t)1 << 32) - 1;
 
-
-		// XOR left and op
 		r_xor = sbox_out ^ l;
 
 		l = r_xor;
 
-		// Swapper
 		if (i != 15) {
             u_int64_t tmp = l;
             l = r;
@@ -195,58 +212,29 @@ u_int64_t encrypt(u_int64_t block, u_int64_t *rkeys) {
 
 }
 
-void show_cipher(u_int64_t *blocks, int len, int fd) {
-    for (int i = 0; i < len; i++) {
-        for (int j = 0; j < 8; j++) {
-            char c = (blocks[i] >> (56 - j * 8)) & 0xff;
-            write(fd, &c, 1);
-            //printf("%c",(blocks[i] >> (56 - j * 8)));
-        }
-        //put_hex_n(blocks[i], 64);
-        //PUT(" ");
-    }
-    PUT("\n");
-}
+void des(t_cipher_args *args, int flags) {
 
-u_int8_t *des_ecb(t_cipher_args *args, int flags) {
-
-    printf("key : %ld\n", args->key);
+    //dprintf(2, "iv : %lx\n", args->iv);
 
     u_int64_t rkeys[16];
-    key_gen(args->key, rkeys);
+    rounded_key_gen(args->key, rkeys, flags);
 
-    if (flags & FLAG_D) {
-        printf("yes\n");
-        for (int i = 0; i < 16 / 2; i++) {
-            u_int64_t tmp = rkeys[i];
-            rkeys[i] = rkeys[15 - i];
-            rkeys[15 - i] = tmp;
-        }
-    }
+    size_t blocks_len = args->text_len / 8 + !(flags & FLAG_D);//(args->text_len % 8 == 0);
 
-    size_t text_len = ft_strlen(args->text);
-    size_t blocks_len = text_len / 8 + 1;
+    u_int64_t blocks_in[blocks_len];
+    u_int64_t blocks_out[blocks_len];
+    text_to_blocks(args->text, args->text_len, blocks_in);
 
-    u_int64_t blocks[blocks_len];
-    text_to_blocks(args->text, text_len, blocks);
-
-    //blocks[0] = 5076063491319685041LL;
-    //blocks[0] = 1499456985431636477LL;
-
-    //for (int i = 0; i < 8; i++) {
-        //u_int64_t tmp = rkeys[i];
-        //rkeys[i] = rkeys[16 - i - 1];
-        //rkeys[16 - i - 1] = tmp;
-    //}
-
+    // solve
     for (int i = 0; i < blocks_len; i++) {
-        blocks[i] = encrypt(blocks[i], rkeys);
+        if (args->mode == MODE_CBC && !(flags & FLAG_D))
+            blocks_in[i] ^= (i == 0 ? args->iv : blocks_out[i-1]);
+
+        blocks_out[i] = encrypt(blocks_in[i], rkeys);
+
+        if (args->mode == MODE_CBC && flags & FLAG_D)
+            blocks_out[i] ^= (i == 0 ? args->iv : blocks_in[i-1]);
     }
 
-    PUT("cipher text: ");
-    show_cipher(blocks, blocks_len, args->out_fd);
-    //printf("Raw : %ld\n", blocks[0]);
-
-    printf("\n");
-    
+    show_des(blocks_out, blocks_len, args->out_fd, flags);
 }

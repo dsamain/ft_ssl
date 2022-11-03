@@ -78,3 +78,38 @@ u_int64_t str_to_u64(char *s) {
     }
     return ret;
 }
+
+u_int8_t *read_fd(int fd, size_t *len) {
+
+    if (fd == 0) {
+        char *ret = NULL;
+        char buf[BUFF_SIZE];
+
+        int status;
+        while ((status = read(fd, buf, BUFF_SIZE + 1))) {
+            if (status == -1)
+                throw("Error while reading");
+            if (len) *len += status;
+            buf[status] = 0;
+            ret = ft_join(ret, buf);
+        }
+        return ret;
+    }
+
+    struct stat buf;
+    int status;
+    status = fstat(fd, &buf);
+    if (status < 0)
+        throw("Error while reading");
+
+    if (len) *len = buf.st_size;
+
+    
+    char *ret = mmap(NULL, buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+
+    if (ret == MAP_FAILED) {
+        throw("Error while reading");
+    }
+    return ret;
+
+}

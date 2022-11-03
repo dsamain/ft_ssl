@@ -1,38 +1,19 @@
 #include "../ft_ssl.h"
 
-char *read_fd(int fd) {
-    char *ret = NULL;
-    char buf[BUFF_SIZE];
-
-    int status;
-    while ((status = read(fd, buf, BUFF_SIZE + 1))) {
-        if (status == -1)
-            throw("Error while reading");
-        buf[status] = 0;
-        ret = ft_join(ret, buf);
-    }
-    return ret;
-}
-
-//typedef struct t_cipher_args {
-    //u_int64_t iv; // initial permutation
-    //u_int64_t key;
-    //char *text;
-    //char *output;
-//} t_cipher_args;
-
 
 u_int64_t parse_key(char *key) {
     u_int64_t ret = 0;
     size_t len = ft_strlen(key);
-    char *base = "0123456789ABCDEF";
+    char *base = "0123456789abcdef";
     for (int i = 0; i < 16; i++) {
         ret <<= 4;
         if (i < len) {
             char *p = ft_strchr(base, ft_tolower(key[i]));
-            ret |= (p - base) & 1;
+            if (!p) throw("Invalid character\n");
+            ret |= (p - base);
         }
     }
+    //dprintf(2, "ft_key: %lx", ret);
     return ret;
 }
 
@@ -40,35 +21,50 @@ u_int64_t parse_key(char *key) {
 t_cipher_args parse_cipher(int ac, char **av, int *flags) {
     t_cipher_args ret = INIT_CIPHER_ARGS;
 
+    if (!ft_strncmp(av[1], "des", 3))
+        ret.mode = (ft_strcmp(av[1], "des-ecb")) ? MODE_CBC : MODE_ECB;
+
     for (int i = 2; i < ac && av[i][0] == '-'; i++) {
         if (!ft_strcmp(av[i], "-e")) {
             *flags |= FLAG_E;
         } else if (!ft_strcmp(av[i], "-d")) {
             *flags |= FLAG_D;
         } else if (!ft_strcmp(av[i], "-k")) { // key in hex
-            if (i + 1 >= ac) throw("Missing key\n");
+            if (i + 1 >= ac) 
+                throw("Missing key\n");
             ret.key = parse_key(av[++i]);
         } else if (!ft_strcmp(av[i], "-i")) { // input file
             *flags |= FLAG_I;
             if (i + 1 >= ac) throw("Missing input file\n");
             int fd = open(av[i + 1], O_RDONLY);
-            if (fd < 0) throw(cat("ft_ssl: ", av[1], ": ", av[i], ": No such file or directory\n"));
-            ret.text = read_fd(fd);
+            if (fd < 0) 
+                throw(cat("ft_ssl: ", av[1], ": ", av[i], ": No such file or directory\n"));
+            ret.text = read_fd(fd, &ret.text_len);
             i++;
         } else if (!ft_strcmp(av[i], "-o")) {
-            if (i + 1 >= ac) throw("Missing output file\n");
-            ret.out_fd = open(av[i + 1], O_WRONLY | O_CREAT | O_TRUNC, 0);
-            if (ret.out_fd < 0) throw(cat("ft_ssl: ", av[1], ": ", av[i], ": No such file or directory\n"));
+            *flags |= FLAG_O;
+            if (i + 1 >= ac) 
+                throw("Missing output file\n");
+            ret.out_fd = open(av[i + 1], O_WRONLY | O_CREAT | O_TRUNC, 0777);
+            if (ret.out_fd < 0) 
+                throw(cat("ft_ssl: ", av[1], ": ", av[i], ": No such file or directory\n"));
             i++;
+        } else if (!ft_strcmp(av[i], "-v")) {
+            *flags |= FLAG_V;
+            if (i + 1 >= ac) throw("Missing initialization vector\n");
+            ret.iv = parse_key(av[++i]);
         } else {
             throw(cat("ft_ssl: ", av[1], ": ", av[i], ": Invalid option\n"));
         }
     }
 
-    printf("ret fd : %d\n", ret.out_fd);
+    if (ret.mode == MODE_CBC && !(*flags & FLAG_V)) {
+        throw("iv undefined\n");
+    }
+
     if (!flags & FLAG_I) {
         PUT("Enter text to encrypt : \n");
-        ret.text = read_fd(0);
+        ret.text = read_fd(0, &ret.text_len);
     }
 
     return ret;
@@ -89,13 +85,13 @@ t_hash_args *parse_hash(int ac, char **av, int *flags) {
             if (i == ac - 1)
                 throw(cat("ft_ssl: ", av[1], ": Expeted a string after -s.\nexample: ft_ssl command -s \"pouet\"\n"));
             push_hash_args(&ret);
-            ret->source = cat((*flags & FLAG_R ? "" : to_upper(av[1])), "(\"", av[i + 1], "\")");    
+            ret->source = cat((*flags & FLAG_R ? "" : str_to_upper(av[1])), "(\"", av[i + 1], "\")");    
             ret->content = cat(av[i + 1]);
             i++;
             f |= 1;
         } else if (!ft_strcmp(av[i], "-p")) {
             push_hash_args(&ret);
-            ret->content = read_fd(0);
+            ret->content = read_fd(0, NULL);
             ret->source = cat(ret->content);
             ret->source[ft_strlen(ret->source) - 1] = 0;
             ret->source = cat("(\"", ret->source, "\")");
@@ -109,7 +105,7 @@ t_hash_args *parse_hash(int ac, char **av, int *flags) {
     // read files
     if (i == ac && !f) {
             push_hash_args(&ret);
-            ret->content = read_fd(0);
+            ret->content = read_fd(0, NULL);
             ret->source = cat("(stdin)");
     } else {
         for (; i < ac; i++) {
@@ -119,8 +115,8 @@ t_hash_args *parse_hash(int ac, char **av, int *flags) {
                 continue;
             } 
             push_hash_args(&ret);
-            ret->content = read_fd(fd);
-            ret->source = cat((*flags & FLAG_R ? "" : to_upper(av[1])), "(", av[i], ")");    
+            ret->content = read_fd(fd, NULL);
+            ret->source = cat((*flags & FLAG_R ? "" : str_to_upper(av[1])), "(", av[i], ")");    
             close(fd);
         }
     }
