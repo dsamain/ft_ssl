@@ -39,7 +39,7 @@ int ft_strcmp(char *s, char *t) {
     for (i = 0; s[i]; i++)
         if (s[i] != t[i])
             break;
-    return s[i] - t[i]; 
+    return (s[i] - t[i]); 
 }
 
 int ft_strncmp(char *s, char *t, int n) {

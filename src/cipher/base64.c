@@ -1,64 +1,108 @@
 #include "../../ft_ssl.h"
 
-char base[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+char base[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-void decrypt_base64(t_cipher_args *args, int flags) {
-    args->text_len--;
-    if (args->text_len % 4 != 0)
-        throw("invalid base64 input for decrypt\n");
+void check_text(char *text, size_t text_len, int flags) {
 
-    for (int i = 0; i < args->text_len / 4; i++) {
-        u_int32_t cur = 0, cnt = 0;
-        for (int j = 0; j < 4; j++) {
-            cur = (cur << 6);
-            if (args->text[i * 4 + j] != '=') {
-                cur |= (ft_strchr(base, args->text[i * 4 + j]) - base);
-            } else {
-                cnt++;
-            }
-        }
-        //printf("cnt : %d\n", cnt);
-        for (int j = 0; j < 3 - cnt; j++) {
-            char c = (cur >> (16 - j * 8)) & 0xff;
-            write(args->out_fd, &c, 1);
+    int cnt = 0;
+    for (int i = 0; text_len; i++) {
+        if (text[i] == '\n') {
+            if (i == text_len - 1)
+                break;
+            if (cnt % 64 != 0)
+                throw("invalid base64 input\n");
+        } else if (!ft_strchr(base, text[i]) && text[i] != '=') {
+            throw("invalid base64 input\n");
+        } else {
+            cnt++;
         }
     }
+
+    if (cnt % 4 != 0)
+        throw("invalid base64 input\n");
 }
 
-void encrypt_base64(t_cipher_args *args, int flags) {
-    int cnt = 0;
+char *decrypt_base64(char *text, size_t text_len, int flags, size_t *ret_len) {
 
-    for (int i = 0; i < args->text_len / 3 + !!(args->text_len % 3); i++) {
-        u_int32_t cur = args->text[i * 3] << 16 | args->text[i * 3 + 1] << 8 | args->text[i * 3 + 2];
+    check_text(text, text_len, flags);
+
+    char *ret = ft_malloc(text_len * 4 / 3 + 1);
+    int k = 0;
+
+    int cur = 0, cnt = 0, pad = 0;
+    for (int i = 0; i < text_len; i++) {
+        if (text[i] == '\n') {
+            continue;
+        }
+        cur <<= 6;
+        if (text[i] != '=') {
+            cur |= (ft_strchr(base, text[i]) - base);
+        } else {
+            pad++;
+        }
+        cnt++;
+        if (cnt == 4) {
+            for (int j = 0; j < 3 - pad; j++) {
+                char c = (cur >> (16 - j * 8)) & 0xff;
+                ret[k++] = c;
+            }
+            cur = 0, cnt = 0, pad = 0;
+        }
+    }
+    ret[k] = 0;
+    if (ret_len) *ret_len = k;
+    return ret;
+}
+
+char *encrypt_base64(char *text, size_t text_len, int flags, size_t *ret_len) {
+    int cnt = 0, k = 0;
+
+    char *ret = ft_malloc((text_len + !!(text_len % 3)) * 4  + text_len / 64 + 10);
+
+    for (int i = 0; i < text_len / 3 + !!(text_len % 3); i++) {
+        u_int32_t cur = (unsigned char)text[i * 3] << 16 | (unsigned char)text[i * 3 + 1] << 8 | (unsigned char)text[i * 3 + 2];
         u_int8_t padding = 0;
-        if (i == args->text_len / 3)
-            padding = (args->text_len % 3 == 1 ? 2 : 1);
+        if (i == text_len / 3)
+            padding = (text_len % 3 == 1 ? 2 : 1);
 
-        for (int j = 0; j < 4 - padding; j++, cnt++) {
+        for (int j = 0; j < 4 - padding; j++, k++, cnt++) {
             int idx = (cur >> (18 - j * 6)) & 0x3f;
-            write(args->out_fd, &base[idx], 1);
-            if (cnt % 64 == 63)
-                write(args->out_fd, &"\n", 1);
+            ret[k] = base[idx];
+            if (cnt % 64 == 63) {
+                ret[++k] = '\n';
+            }
         }
-        for (int j = 0; j < padding; j++, cnt++) {
-            write(args->out_fd, &"=", 1);
-            if (cnt % 64 == 63)
-                write(args->out_fd, &"\n", 1);
+        for (int j = 0; j < padding; j++, k++, cnt++) {
+            ret[k] = '=';
+            if (cnt % 64 == 63) {
+                ret[++k] = '\n';
+            }
         }
     }
-    if (cnt % 64) {
-        write(args->out_fd, &"\n", 1);
-    }
+
+    ret[k] = 0;
+
+    if (ret_len) *ret_len = k;
+
+    return ret;
 }
 
 void base64(t_cipher_args *args, int flags) {
-    if (!(flags & FLAG_I)) {
+    if (!(flags & FLAG_I))
         args->text = read_fd(0, &args->text_len);
-    }
 
     if (flags & FLAG_D) {
-        decrypt_base64(args, flags);
+        size_t ret_len;
+        char *ret = decrypt_base64(args->text, args->text_len, flags, &ret_len);
+        for (int i = 0; i < ret_len; i++) {
+            write(args->out_fd, ret + i, 1);
+        }
     } else {
-        encrypt_base64(args, flags);
+        char *ret = encrypt_base64(args->text, args->text_len, flags, NULL);
+        for (int i = 0; ret[i]; i++) {
+            write(args->out_fd, &ret[i], 1);
+            if (ret[i] != '\n' && !ret[i + 1])
+                write(args->out_fd, &"\n", 1);
+        }
     }
 }

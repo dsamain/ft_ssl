@@ -91,14 +91,31 @@ u_int8_t per[32] = { 16, 7, 20, 21, 29, 12, 28, 17, 1, 15, 23,
 
 
 void show_des(u_int64_t *blocks, int len, int fd, int flags) {
-    for (int i = 0; i < len; i++) {
+
+    char *buf = ft_malloc(len * 8 + 2);
+    size_t cnt = 0;
+
+    int i = 0;
+    for (; i < len; i++) {
         for (int j = 0; j < 8; j++) {
             unsigned char c = (blocks[i] >> (56 - j * 8)) & 0xff;
-            if (c == 8 - j && c == (blocks[i] & 0xff) && (flags & FLAG_D) && i == len-1) {
-                    return;
-            }
-            write(fd, &c, 1);
+            if (c == 8 - j && c == (blocks[i] & 0xff) && (flags & FLAG_D) && i == len-1)
+                goto stop;
+            buf[cnt++] = c;
         }
+    }
+    stop:;
+    buf[cnt] = 0;
+
+    if ((flags & FLAG_A) && !(flags & FLAG_D)) {
+        buf = encrypt_base64(buf, cnt, 0, &cnt);
+        if (buf[cnt - 1] != '\n')
+            buf[cnt++] = '\n';
+        buf[cnt] = 0;
+    }
+
+    for (i = 0; i < cnt; i++) {
+        write(fd, buf + i, 1);
     }
 }
 
@@ -145,13 +162,8 @@ void text_to_blocks(u_int8_t *text, size_t len, u_int64_t *blocks) {
         for (int j = 0; j < 8; j++)
             blocks[i] = (blocks[i] << 8) | text[i * 8 + j];
 
-    // padding for last block with size
     for (int j = 0; j < 8; j++)
         blocks[i] = (blocks[i] << 8) | (len % 8 > j ? text[i * 8 + j] : 8 - len % 8);
-
-    // padding for last block with 0
-    //for (int j = 0; j < 8; j++)
-        //blocks[i] = (blocks[i] << 8) | (len % 8 > j ? text[i * 8 + j] : 0);
 }
 
 char *blocks_to_text(u_int64_t *blocks, size_t block_len) {
@@ -212,20 +224,89 @@ u_int64_t encrypt(u_int64_t block, u_int64_t *rkeys) {
 
 }
 
+u_int64_t gen_salt() {
+    return (u_int64_t)rand() << 32 | rand();
+}
+
+void gen_key(t_cipher_args *args, int flags) {
+
+
+    if (!(flags & FLAG_S)) {
+        args->salt = gen_salt();
+    }
+
+    args->pass = ft_join(args->pass, blocks_to_text(&args->salt, 1));
+
+    char *hash = md5(args->pass);
+    for (int j = 0; j < 8; j++)
+        args->key = (args->key << 8) | hash[j];
+}
+
+void get_key(t_cipher_args *args, int flags) {
+    args->text += 8;
+
+    char salt[9] = {0};
+    for (int i = 0; i < 8; i++) {
+        salt[i] = args->text[i];
+    }
+    args->pass = ft_join(args->pass, salt);
+
+
+    char *hash = md5(args->pass);
+    for (int j = 0; j < 8; j++)
+        args->key = (args->key << 8) | hash[j];
+
+    args->text += 8;
+    args->text_len -= 16;
+}
+
+void check_valid_text(t_cipher_args *args, int flags) {
+
+    int req_size = 8 + (!(flags & FLAG_K)) * 16;
+
+    if (args->text_len % 8 != 0 || args->text_len < req_size)
+        throw("invalid text size\n");
+
+    if (!(flags & FLAG_K)) 
+        if (ft_strncmp(args->text, "Salted__", 8) != 0)
+            throw("Missing salt\n");
+}
+
 void des(t_cipher_args *args, int flags) {
 
-    //dprintf(2, "iv : %lx\n", args->iv);
+    if (!(flags & FLAG_K) && !(flags & FLAG_P)) {
+        args->pass = getpass("Enter password: ");
+        if (args->pass == NULL)
+            throw("getpass failed\n");
+    }
+
+    if (!(flags & FLAG_I))
+        args->text = read_fd(0, &args->text_len);
+
+    if ((flags & FLAG_A) && (flags & FLAG_D))
+        args->text = decrypt_base64(args->text, args->text_len, 0, &args->text_len);
+
+    if (flags & FLAG_D)
+        check_valid_text(args, flags);
+
+    if (!(flags & FLAG_K)) {
+        if (flags & FLAG_D)
+            get_key(args, flags);
+        else
+            gen_key(args, flags);
+    }
+
 
     u_int64_t rkeys[16];
     rounded_key_gen(args->key, rkeys, flags);
 
-    size_t blocks_len = args->text_len / 8 + !(flags & FLAG_D);//(args->text_len % 8 == 0);
+    size_t blocks_len = args->text_len / 8 + !(flags & FLAG_D);
 
     u_int64_t blocks_in[blocks_len];
     u_int64_t blocks_out[blocks_len];
     text_to_blocks(args->text, args->text_len, blocks_in);
 
-    // solve
+
     for (int i = 0; i < blocks_len; i++) {
         if (args->mode == MODE_CBC && !(flags & FLAG_D))
             blocks_in[i] ^= (i == 0 ? args->iv : blocks_out[i-1]);
@@ -234,6 +315,14 @@ void des(t_cipher_args *args, int flags) {
 
         if (args->mode == MODE_CBC && flags & FLAG_D)
             blocks_out[i] ^= (i == 0 ? args->iv : blocks_in[i-1]);
+    }
+
+    if (!(flags & FLAG_K) && (!(flags & FLAG_D))) { // put salt
+        write(args->out_fd, "Salted__", 8);
+        char *salt = blocks_to_text(&args->salt, 1);
+        for (int i = 0; i < 8; i++) {
+            write(args->out_fd, salt + i, 1);
+        }
     }
 
     show_des(blocks_out, blocks_len, args->out_fd, flags);

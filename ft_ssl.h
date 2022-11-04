@@ -53,7 +53,6 @@
 #define MODE_ECB (1 << 0)
 #define MODE_CBC (1 << 1)
 
-#define INIT_CIPHER_ARGS {0, 0, 0, (size_t)0, 0, (int)1, MODE_ECB}
 
 typedef struct s_commmand {
     char *name;
@@ -70,9 +69,12 @@ typedef struct s_hash_args {
     struct s_hash_args   *next;
 } t_hash_args;
 
+#define INIT_CIPHER_ARGS {(size_t)0, (char *)0, (u_int64_t)0, (u_int64_t)0, (char *)0, (size_t)0, (char *)0, (int)1, MODE_ECB}
 
 typedef struct t_cipher_args {
     u_int64_t iv; // initial permutation
+    char *pass;
+    u_int64_t salt;
     u_int64_t key;
     char *text;
     size_t text_len;
@@ -101,7 +103,7 @@ void putb_n(u_int64_t n, int size);
 
 // parsing
 t_hash_args *parse_hash(int ac, char **av, int *flags);
-t_cipher_args parse_cipher(int ac, char **av, int *flags);
+t_cipher_args parse_cipher(int ac, char **av, int *flags, t_command *command);
 
 
 // hash
@@ -112,8 +114,10 @@ char *sha384(char *s);
 char *sha512(char *s);
 
 // cipher
-void base64(t_cipher_args *args, int flags);
 void des(t_cipher_args *args, int flags);
+void base64(t_cipher_args *args, int flags);
+char *encrypt_base64(char *text, size_t text_len, int flags, size_t *ret_len);
+char *decrypt_base64(char *text, size_t text_len, int flags, size_t *ret_len);
 
 // padding
 u_int8_t *padding(char *s, size_t *len);

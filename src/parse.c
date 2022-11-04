@@ -1,7 +1,7 @@
 #include "../ft_ssl.h"
 
 
-u_int64_t parse_key(char *key) {
+u_int64_t parse_hex_to_u64(char *key) {
     u_int64_t ret = 0;
     size_t len = ft_strlen(key);
     char *base = "0123456789abcdef";
@@ -15,57 +15,106 @@ u_int64_t parse_key(char *key) {
     }
     //dprintf(2, "ft_key: %lx", ret);
     return ret;
+
 }
 
 
-t_cipher_args parse_cipher(int ac, char **av, int *flags) {
+t_cipher_args parse_cipher(int ac, char **av, int *flags, t_command *command) {
     t_cipher_args ret = INIT_CIPHER_ARGS;
 
     if (!ft_strncmp(av[1], "des", 3))
-        ret.mode = (ft_strcmp(av[1], "des-ecb")) ? MODE_CBC : MODE_ECB;
+        ret.mode = (!ft_strcmp(av[1], "des") || !ft_strcmp(av[1], "des-cbc")) ? MODE_CBC : MODE_ECB;
 
-    for (int i = 2; i < ac && av[i][0] == '-'; i++) {
+    for (int i = 2; i < ac ; i++) {
+        if (av[i][0] != '-') {
+            throw("Extra arguments given.\n");
+        }
+
+        if (!ft_strchr(command->available_flags, av[i][1])) {
+            throw("Invalid flag given.\n");
+        }
+        
         if (!ft_strcmp(av[i], "-e")) {
+
             *flags |= FLAG_E;
+
         } else if (!ft_strcmp(av[i], "-d")) {
+
             *flags |= FLAG_D;
+
         } else if (!ft_strcmp(av[i], "-k")) { // key in hex
+
+            *flags |= FLAG_K;
+
             if (i + 1 >= ac) 
                 throw("Missing key\n");
-            ret.key = parse_key(av[++i]);
+
+            ret.key = parse_hex_to_u64(av[++i]);
+
         } else if (!ft_strcmp(av[i], "-i")) { // input file
+
             *flags |= FLAG_I;
             if (i + 1 >= ac) throw("Missing input file\n");
+
             int fd = open(av[i + 1], O_RDONLY);
+
             if (fd < 0) 
                 throw(cat("ft_ssl: ", av[1], ": ", av[i], ": No such file or directory\n"));
+
             ret.text = read_fd(fd, &ret.text_len);
             i++;
+
         } else if (!ft_strcmp(av[i], "-o")) {
+
             *flags |= FLAG_O;
             if (i + 1 >= ac) 
                 throw("Missing output file\n");
+
             ret.out_fd = open(av[i + 1], O_WRONLY | O_CREAT | O_TRUNC, 0777);
+
             if (ret.out_fd < 0) 
                 throw(cat("ft_ssl: ", av[1], ": ", av[i], ": No such file or directory\n"));
             i++;
+
         } else if (!ft_strcmp(av[i], "-v")) {
+
             *flags |= FLAG_V;
-            if (i + 1 >= ac) throw("Missing initialization vector\n");
-            ret.iv = parse_key(av[++i]);
+
+            if (i + 1 >= ac) 
+                throw("Missing initialization vector\n");
+
+            ret.iv = parse_hex_to_u64(av[++i]);
+
+        } else if (!ft_strcmp(av[i], "-p")) {
+
+            *flags |= FLAG_P;
+
+            if (i + 1 >= ac) 
+                throw("Missing password\n");
+
+            ret.pass = av[++i];
+        
+        } else if (!ft_strcmp(av[i], "-s")) {
+
+            *flags |= FLAG_S;
+            if (i + 1 >= ac) 
+                throw("Missing salt\n");
+
+            ret.salt = parse_hex_to_u64(av[++i]);
+
+        } else if (!ft_strcmp(av[i], "-a")) {
+
+            *flags |= FLAG_A;
+
         } else {
+
             throw(cat("ft_ssl: ", av[1], ": ", av[i], ": Invalid option\n"));
+
         }
     }
 
-    if (ret.mode == MODE_CBC && !(*flags & FLAG_V)) {
+    if (ret.mode == MODE_CBC && !(*flags & FLAG_V))
         throw("iv undefined\n");
-    }
-
-    if (!flags & FLAG_I) {
-        PUT("Enter text to encrypt : \n");
-        ret.text = read_fd(0, &ret.text_len);
-    }
 
     return ret;
 }

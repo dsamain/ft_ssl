@@ -25,7 +25,6 @@ run: $(NAME)
 
 clean:
 	rm -f $(OBJS)
-	rm bin/input bin/ft_output bin/openssl_output bin/openssl_output_dec bin/ft_output_dec 2> /dev/null
 
 fclean: clean
 	rm -f $(NAME)

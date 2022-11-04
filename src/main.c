@@ -44,18 +44,13 @@ void hash(t_command *command, int ac, char **av) {
 
 void cipher(t_command *command, int ac, char **av) {
     int flags = 0;
-    t_cipher_args args = parse_cipher(ac, av, &flags);
+    t_cipher_args args = parse_cipher(ac, av, &flags, command);
 
     ((void(*)(t_cipher_args *, int))command->f)(&args, flags);
 }
 
 
 int main(int ac, char **av) {
-
-    //printf("num: \n");
-    //putb(str_to_u64("8888"));
-    //PUT("\n");
-    
 
     if (ac == 1) {
         help();

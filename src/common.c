@@ -36,14 +36,26 @@ int help() {
     PUT("  sha256\n");
     PUT("  sha384\n");
     PUT("  sha512\n");
-    PUT("\nCipher commands:\n");
-    PUT("  base64\n");
-    PUT("  des\n");
-    PUT("\nOptions:\n");
+    PUT("\nMessage Digest options:\n");
     PUT("  -s  print the sum of the given string.\n");
     PUT("  -p  echo STDIN to STDOUT and append the checksum to STDOUT.\n");
     PUT("  -r  reverse the format of the output.\n");
     PUT("  -q  quiet mode.\n");
+    PUT("\nCipher commands:\n");
+    PUT("  base64\n");
+    PUT("  des\n");
+    PUT("  des-ecb\n");
+    PUT("  des-cbc\n");
+    PUT("\nCipher options:\n");
+    PUT("  -a  encrypt/decrypt in base64\n");
+    PUT("  -d  decrypt\n");
+    PUT("  -e  encrypt\n");
+    PUT("  -i  input file\n");
+    PUT("  -k  key in hex\n");
+    PUT("  -o  output file\n");
+    PUT("  -p  password\n");
+    PUT("  -s  salt\n");
+    PUT("  -v  initialization vector\n");
 
     return (0);
 }
@@ -104,8 +116,13 @@ u_int8_t *read_fd(int fd, size_t *len) {
 
     if (len) *len = buf.st_size;
 
+    char *ret; 
+
+    if (buf.st_size == 0)
+        ret = ft_join("", NULL);
+    else 
+        ret = mmap(NULL, buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
     
-    char *ret = mmap(NULL, buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
 
     if (ret == MAP_FAILED) {
         throw("Error while reading");
