@@ -1,11 +1,15 @@
 #include "../ft_ssl.h"
 
 t_command g_hash[5] = {
-    {"md5", md5, 16}, 
-    {"sha224", sha224, 28, "pqrs"}, 
+    //{"md5", md5, 16}, 
+    //{"sha224", sha224, 28, "pqrs"}, 
     {"sha256", sha256, 32, "pqrs"}, 
-    {"sha384", sha384, 48, "pqrs"}, 
-    {"sha512", sha512, 64, "pqrs"},
+    {"sha256", sha256, 32, "pqrs"}, 
+    {"sha256", sha256, 32, "pqrs"}, 
+    {"sha256", sha256, 32, "pqrs"}, 
+    {"sha256", sha256, 32, "pqrs"}, 
+    //{"sha384", sha384, 48, "pqrs"}, 
+    //{"sha512", sha512, 64, "pqrs"},
 };
 
 t_command g_cipher[4] = {
@@ -36,7 +40,7 @@ void hash(t_command *command, int ac, char **av) {
     int flags = 0;
     t_hash_args *args = parse_hash(ac, av, &flags);
     while (args) {
-        args->output = ((char *(*)(char*))command->f)(args->content);
+        args->output = ((char *(*)(char *, size_t))command->f)(args->content, ft_strlen(args->content));
         show_hash(*command, *args, flags);
         args = args->next;
     }
@@ -63,6 +67,7 @@ int main(int ac, char **av) {
     } else if ((command = find_command(av[1], g_cipher, sizeof(g_cipher)))) {
         cipher(command, ac, av);
     } else {
-        throw(cat("ft_ssl: \"", av[1], "\" is an invalid command.\n"));
+        help();
+        //throw(cat("ft_ssl: \"", av[1], "\" is an invalid command.\n"));
     }
 }

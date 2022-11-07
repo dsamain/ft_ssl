@@ -1,7 +1,6 @@
 #include "../../ft_ssl.h"
 
-u_int8_t *padding(char *s, size_t *len) {
-    u_int64_t sz = ft_strlen(s);
+u_int8_t *padding(char *s, u_int64_t sz, size_t *len) {
     u_int32_t tot = sz + 9; // 8 bits fot the size + 1 bit for the 1
     tot += (tot % 64) ? (64 - tot % 64) : 0;
 

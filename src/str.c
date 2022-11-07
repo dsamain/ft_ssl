@@ -23,6 +23,18 @@ char *ft_join(char *s, char *t) {
     return ret;
 }
 
+char *ft_join_len(char *s, size_t s_len, char *t, size_t t_len) {
+    char *ret = ft_malloc(s_len + t_len + 1);
+
+    for (int i = 0; i < s_len; i++) 
+        ret[i] = s[i];
+    for (int i = 0; i < t_len; i++) 
+        ret[i + s_len] = t[i];
+    ret[s_len + t_len] = 0;
+    return ret;
+
+}
+
 char *cat_f(char *s, ...) {
     va_list l;
     va_start(l, s);

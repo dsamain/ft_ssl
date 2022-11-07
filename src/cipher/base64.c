@@ -2,6 +2,8 @@
 
 char base[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
+#define BN_POS 76
+
 void check_text(char *text, size_t text_len, int flags) {
 
     int cnt = 0;
@@ -9,7 +11,7 @@ void check_text(char *text, size_t text_len, int flags) {
         if (text[i] == '\n') {
             if (i == text_len - 1)
                 break;
-            if (cnt % 64 != 0)
+            if (cnt % BN_POS != 0)
                 throw("invalid base64 input\n");
         } else if (!ft_strchr(base, text[i]) && text[i] != '=') {
             throw("invalid base64 input\n");
@@ -68,13 +70,13 @@ char *encrypt_base64(char *text, size_t text_len, int flags, size_t *ret_len) {
         for (int j = 0; j < 4 - padding; j++, k++, cnt++) {
             int idx = (cur >> (18 - j * 6)) & 0x3f;
             ret[k] = base[idx];
-            if (cnt % 64 == 63) {
+            if (cnt % BN_POS == BN_POS - 1) {
                 ret[++k] = '\n';
             }
         }
         for (int j = 0; j < padding; j++, k++, cnt++) {
             ret[k] = '=';
-            if (cnt % 64 == 63) {
+            if (cnt % BN_POS == BN_POS - 1) {
                 ret[++k] = '\n';
             }
         }

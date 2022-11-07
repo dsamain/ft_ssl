@@ -234,12 +234,20 @@ void gen_key(t_cipher_args *args, int flags) {
     if (!(flags & FLAG_S)) {
         args->salt = gen_salt();
     }
+    char s[9] = {0};  
 
-    args->pass = ft_join(args->pass, blocks_to_text(&args->salt, 1));
+    for (int i = 0; i < 8; i++) {
+        s[i] = (args->salt >> (56 - i * 8)) & 0xff;
+    }
 
-    char *hash = md5(args->pass);
+    char *hash = pbkdf2(args->pass, s, 10000, 8);
+
     for (int j = 0; j < 8; j++)
-        args->key = (args->key << 8) | hash[j];
+        args->key = (args->key << 8) | (hash[j] & 0xff);
+
+    //dprintf(2, "salt: %lx\n", args->salt);
+
+    //dprintf(2, "gen key: %lx\n", args->key);
 }
 
 void get_key(t_cipher_args *args, int flags) {
@@ -249,15 +257,15 @@ void get_key(t_cipher_args *args, int flags) {
     for (int i = 0; i < 8; i++) {
         salt[i] = args->text[i];
     }
-    args->pass = ft_join(args->pass, salt);
+    char *hash = pbkdf2(args->pass, salt, 10000, 8);
 
-
-    char *hash = md5(args->pass);
     for (int j = 0; j < 8; j++)
-        args->key = (args->key << 8) | hash[j];
+        args->key = (args->key << 8) | (hash[j] & 0xff);
 
     args->text += 8;
     args->text_len -= 16;
+
+    //dprintf(2, "get key: %lx\n", args->key);
 }
 
 void check_valid_text(t_cipher_args *args, int flags) {

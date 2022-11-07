@@ -9,7 +9,7 @@ while true; do
 
     echo "TEST $i [input size: $n]"
 
-    openssl base64 -in bin/input -out bin/openssl_output 2> /dev/null
+    base64 < bin/input > bin/openssl_output 2> /dev/null
     ./ft_ssl base64 -i bin/input -o bin/ft_output #2> /dev/null
 
     if cmp -s "bin/openssl_output" "bin/ft_output"; then
@@ -18,7 +18,7 @@ while true; do
         echo  "Encode: ❌"
         break;
     fi
-    openssl base64 -in bin/openssl_output -out bin/openssl_output_dec -d #2> /dev/null
+    base64 -d < bin/openssl_output > bin/openssl_output_dec 2> /dev/null
     ./ft_ssl base64 -i bin/ft_output -o bin/ft_output_dec -d #2> /dev/null
 
     if cmp -s "bin/openssl_output_dec" "bin/ft_output_dec"; then
