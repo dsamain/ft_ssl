@@ -13,8 +13,7 @@ char *hmac_sha256(u_int8_t *text, size_t text_len, u_int8_t *key, size_t key_len
     memset(k_opad, 0x5c, SHA_256_BLOCK_SIZE);
 
     if (key_len > SHA_256_BLOCK_SIZE) {
-        k = sha256(key, key_len);
-        //put_hex(k, SHA_256_BLOCK_SIZE);
+        k = (u_int8_t *)sha256((char *)key, key_len);
     } else {
         k = ft_malloc(SHA_256_BLOCK_SIZE); 
         memset(k, 0, SHA_256_BLOCK_SIZE);
@@ -26,12 +25,11 @@ char *hmac_sha256(u_int8_t *text, size_t text_len, u_int8_t *key, size_t key_len
         k_opad[i] ^= k[i];
     }
 
+    char *joined = ft_join_len((char *)k_ipad, SHA_256_BLOCK_SIZE, (char *)text, text_len);
+    char *i_hash = sha256(joined, SHA_256_BLOCK_SIZE + text_len);
 
-    char *joined = ft_join_len(k_ipad, SHA_256_BLOCK_SIZE, text, text_len);
-    u_int8_t *i_hash = sha256(joined, SHA_256_BLOCK_SIZE + text_len);
-
-    joined = ft_join_len(k_opad, SHA_256_BLOCK_SIZE, i_hash, SHA_256_HASH_SIZE);
-    u_int8_t *o_hash = sha256(joined, SHA_256_BLOCK_SIZE + SHA_256_HASH_SIZE);
+    joined = ft_join_len((char *)k_opad, SHA_256_BLOCK_SIZE, i_hash, SHA_256_HASH_SIZE);
+    char *o_hash = sha256(joined, SHA_256_BLOCK_SIZE + SHA_256_HASH_SIZE);
 
     return o_hash;
 }
@@ -45,9 +43,9 @@ char *pbkdf2(char *password, char *salt, int iterations, int key_len) {
 
     //return hmac_sha256(s, ft_strlen(salt) + 4, password, ft_strlen(password));
     char **u = ft_malloc(sizeof(char *) * iterations);
-    u[0] = hmac_sha256(s, SALT_LEN + 4, password, ft_strlen(password));
+    u[0] = hmac_sha256((u_int8_t *)s, SALT_LEN + 4, (u_int8_t *)password, ft_strlen(password));
     for (int i = 1; i < iterations; i++) {
-        u[i] = hmac_sha256(u[i-1], 32, password, ft_strlen(password));
+        u[i] = hmac_sha256((u_int8_t *)u[i-1], 32, (u_int8_t *)password, ft_strlen(password));
         //u[i] = hmac_sha256(password, ft_strlen(password), u[i-1], 32);
     }
     char *ret = ft_malloc(32);

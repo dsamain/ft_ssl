@@ -119,8 +119,8 @@ char *hmac_sha256(u_int8_t *text, size_t text_len, u_int8_t *key, size_t key_len
 // cipher
 void des(t_cipher_args *args, int flags);
 void base64(t_cipher_args *args, int flags);
-char *encrypt_base64(char *text, size_t text_len, int flags, size_t *ret_len);
-char *decrypt_base64(char *text, size_t text_len, int flags, size_t *ret_len);
+char *encrypt_base64(char *text, size_t text_len, size_t *ret_len);
+char *decrypt_base64(char *text, size_t text_len, size_t *ret_len);
 
 // padding
 u_int8_t *padding(char *s, size_t sz, size_t *len);

@@ -9,9 +9,9 @@ OBJS = $(SRCS:.c=.o)
 CC = gcc
 
 %.o: %.c
-	gcc -c -o $@ $<
+	gcc -c -o $@ $(CFLAGS) $<
 
-#CFLAGS = -Wall -Wextra -Werror
+CFLAGS = -Wall -Wextra -Werror
 
 all: $(NAME)
 

@@ -5,7 +5,7 @@ u_int64_t parse_hex_to_u64(char *key) {
     u_int64_t ret = 0;
     size_t len = ft_strlen(key);
     char *base = "0123456789abcdef";
-    for (int i = 0; i < 16; i++) {
+    for (size_t i = 0; i < 16; i++) {
         ret <<= 4;
         if (i < len) {
             char *p = ft_strchr(base, ft_tolower(key[i]));
@@ -61,7 +61,7 @@ t_cipher_args parse_cipher(int ac, char **av, int *flags, t_command *command) {
             if (fd < 0) 
                 throw(cat("ft_ssl: ", av[1], ": ", av[i], ": No such file or directory\n"));
 
-            ret.text = read_fd(fd, &ret.text_len);
+            ret.text = (char *)read_fd(fd, &ret.text_len);
             i++;
 
         } else if (!ft_strcmp(av[i], "-o")) {
@@ -140,7 +140,7 @@ t_hash_args *parse_hash(int ac, char **av, int *flags) {
             f |= 1;
         } else if (!ft_strcmp(av[i], "-p")) {
             push_hash_args(&ret);
-            ret->content = read_fd(0, NULL);
+            ret->content = (char *)read_fd(0, NULL);
             ret->source = cat(ret->content);
             ret->source[ft_strlen(ret->source) - 1] = 0;
             ret->source = cat("(\"", ret->source, "\")");
@@ -154,7 +154,7 @@ t_hash_args *parse_hash(int ac, char **av, int *flags) {
     // read files
     if (i == ac && !f) {
             push_hash_args(&ret);
-            ret->content = read_fd(0, NULL);
+            ret->content = (char *)read_fd(0, NULL);
             ret->source = cat("(stdin)");
     } else {
         for (; i < ac; i++) {
@@ -164,7 +164,7 @@ t_hash_args *parse_hash(int ac, char **av, int *flags) {
                 continue;
             } 
             push_hash_args(&ret);
-            ret->content = read_fd(fd, NULL);
+            ret->content = (char *)read_fd(fd, NULL);
             ret->source = cat((*flags & FLAG_R ? "" : str_to_upper(av[1])), "(", av[i], ")");    
             close(fd);
         }

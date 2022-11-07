@@ -61,7 +61,7 @@ int help() {
 }
 
 t_command *find_command(char *name, t_command *commands, size_t commands_size) {
-    for (int i = 0; i < commands_size / sizeof(t_command); i++)
+    for (size_t i = 0; i < commands_size / sizeof(t_command); i++)
         if (!ft_strcmp(name, commands[i].name))
             return commands + i;
 
@@ -105,7 +105,7 @@ u_int8_t *read_fd(int fd, size_t *len) {
             buf[status] = 0;
             ret = ft_join(ret, buf);
         }
-        return ret;
+        return (u_int8_t *)ret;
     }
 
     struct stat buf;
@@ -127,6 +127,6 @@ u_int8_t *read_fd(int fd, size_t *len) {
     if (ret == MAP_FAILED) {
         throw("Error while reading");
     }
-    return ret;
+    return (u_int8_t *)ret;
 
 }

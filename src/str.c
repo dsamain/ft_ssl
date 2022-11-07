@@ -26,9 +26,9 @@ char *ft_join(char *s, char *t) {
 char *ft_join_len(char *s, size_t s_len, char *t, size_t t_len) {
     char *ret = ft_malloc(s_len + t_len + 1);
 
-    for (int i = 0; i < s_len; i++) 
+    for (size_t i = 0; i < s_len; i++) 
         ret[i] = s[i];
-    for (int i = 0; i < t_len; i++) 
+    for (size_t i = 0; i < t_len; i++) 
         ret[i + s_len] = t[i];
     ret[s_len + t_len] = 0;
     return ret;
@@ -63,8 +63,7 @@ int ft_strncmp(char *s, char *t, int n) {
 }
 
 char ft_tolower(char c) {
-    if (c >= 'A' && c <= 'Z')
-        return c + 32;
+    return (c >= 'A' && c <= 'Z') ? c + 32 : c;
 }
 
 char *str_to_upper(char *s) {

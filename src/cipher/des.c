@@ -39,7 +39,7 @@ u_int8_t exp_d[48] = { 32, 1, 2, 3, 4, 5, 4, 5, 6, 7, 8, 9,
 	            24, 25, 26, 27, 28, 29, 28, 29, 30, 31, 32, 1 };
 
 // s-boxes
-u_int8_t s[8][4][16] = {
+u_int8_t s[8][64] = {
 	{ 14, 4, 13, 1, 2, 15, 11, 8, 3, 10, 6, 12, 5,
 	9, 0, 7, 0, 15, 7, 4, 14, 2, 13, 1, 10, 6,
 	12, 11, 9, 5, 3, 8, 4, 1, 14, 8, 13, 6, 2,
@@ -108,13 +108,13 @@ void show_des(u_int64_t *blocks, int len, int fd, int flags) {
     buf[cnt] = 0;
 
     if ((flags & FLAG_A) && !(flags & FLAG_D)) {
-        buf = encrypt_base64(buf, cnt, 0, &cnt);
+        buf = encrypt_base64(buf, cnt, &cnt);
         if (buf[cnt - 1] != '\n')
             buf[cnt++] = '\n';
         buf[cnt] = 0;
     }
 
-    for (i = 0; i < cnt; i++) {
+    for (size_t i = 0; i < cnt; i++) {
         write(fd, buf + i, 1);
     }
 }
@@ -129,7 +129,7 @@ u_int64_t permute_u64(u_int64_t n, int8_t *perm, int in_size, int out_size) {
 } 
 
 void rounded_key_gen(u_int64_t key, u_int64_t *rkeys, int flags) {
-    key = permute_u64(key, key_p, 64, 56);
+    key = permute_u64(key, (int8_t *)key_p, 64, 56);
 
     u_int64_t l = (key >> (28)) & ((1 << 28) - 1);
     u_int64_t r = (key ) & ((1 << 28) - 1);
@@ -140,7 +140,7 @@ void rounded_key_gen(u_int64_t key, u_int64_t *rkeys, int flags) {
 
         u_int64_t rkey = (l << 28) | r;
 
-        rkey = permute_u64(rkey, key_comp, 56, 48);
+        rkey = permute_u64(rkey, (int8_t *)key_comp, 56, 48);
 
         rkeys[i] = rkey;
     }
@@ -157,19 +157,19 @@ void rounded_key_gen(u_int64_t key, u_int64_t *rkeys, int flags) {
 }
 
 void text_to_blocks(u_int8_t *text, size_t len, u_int64_t *blocks) {
-    int i;
+    size_t i;
     for (i = 0; i < len / 8 ; i++)
         for (int j = 0; j < 8; j++)
             blocks[i] = (blocks[i] << 8) | text[i * 8 + j];
 
-    for (int j = 0; j < 8; j++)
+    for (size_t j = 0; j < 8; j++)
         blocks[i] = (blocks[i] << 8) | (len % 8 > j ? text[i * 8 + j] : 8 - len % 8);
 }
 
 char *blocks_to_text(u_int64_t *blocks, size_t block_len) {
     char *ret = ft_malloc(block_len * 8 + 1);
 
-    for (int i = 0; i < block_len; i++)
+    for (size_t i = 0; i < block_len; i++)
         for (int j = 0; j < 8; j++)
             ret[i * 8 + j] = (blocks[i] >> (56 - j * 8)) & 0xff;
 
@@ -179,13 +179,13 @@ char *blocks_to_text(u_int64_t *blocks, size_t block_len) {
 u_int64_t encrypt(u_int64_t block, u_int64_t *rkeys) {
 
     // initial permutation
-    block = permute_u64(block, initial_perm, 64, 64);
+    block = permute_u64(block, (int8_t *)initial_perm, 64, 64);
 
     u_int64_t l = (block >> (32)) & (((u_int64_t)1 << 32) - 1);
     u_int64_t r = block & (((u_int64_t)1 << 32) - 1);
 
     for (int i = 0; i < 16; i++) {
-        u_int64_t r_exp = permute_u64(r, exp_d, 32, 48);
+        u_int64_t r_exp = permute_u64(r, (int8_t *)exp_d, 32, 48);
         r_exp &= ((u_int64_t)1 << 48) - 1;
 
         u_int64_t r_xor = r_exp ^ rkeys[i];
@@ -198,11 +198,11 @@ u_int64_t encrypt(u_int64_t block, u_int64_t *rkeys) {
                     + 4 * at(r_xor, i * 6 + 2, 48) 
                     + 2 * at(r_xor, i * 6 + 3, 48) 
                     + at(r_xor, i * 6 + 4, 48);
-            int val = s[i][row][col];
+            int val = s[i][row * 16 + col];
             sbox_out = (sbox_out << 4) | val;
         }
 
-		sbox_out = permute_u64(sbox_out, per, 32, 32);
+		sbox_out = permute_u64(sbox_out, (int8_t *)per, 32, 32);
         sbox_out &= ((u_int64_t)1 << 32) - 1;
 
 		r_xor = sbox_out ^ l;
@@ -218,7 +218,7 @@ u_int64_t encrypt(u_int64_t block, u_int64_t *rkeys) {
 
     u_int64_t res = (l << 32) | r;
 
-    res = permute_u64(res, final_perm, 64, 64);
+    res = permute_u64(res, (int8_t *)final_perm, 64, 64);
 
     return res;
 
@@ -250,7 +250,7 @@ void gen_key(t_cipher_args *args, int flags) {
     //dprintf(2, "gen key: %lx\n", args->key);
 }
 
-void get_key(t_cipher_args *args, int flags) {
+void get_key(t_cipher_args *args) {
     args->text += 8;
 
     char salt[9] = {0};
@@ -272,7 +272,7 @@ void check_valid_text(t_cipher_args *args, int flags) {
 
     int req_size = 8 + (!(flags & FLAG_K)) * 16;
 
-    if (args->text_len % 8 != 0 || args->text_len < req_size)
+    if (args->text_len % 8 != 0 || args->text_len < (size_t)req_size)
         throw("invalid text size\n");
 
     if (!(flags & FLAG_K)) 
@@ -289,17 +289,17 @@ void des(t_cipher_args *args, int flags) {
     }
 
     if (!(flags & FLAG_I))
-        args->text = read_fd(0, &args->text_len);
+        args->text = (char *)read_fd(0, &args->text_len);
 
     if ((flags & FLAG_A) && (flags & FLAG_D))
-        args->text = decrypt_base64(args->text, args->text_len, 0, &args->text_len);
+        args->text = decrypt_base64(args->text, args->text_len, &args->text_len);
 
     if (flags & FLAG_D)
         check_valid_text(args, flags);
 
     if (!(flags & FLAG_K)) {
         if (flags & FLAG_D)
-            get_key(args, flags);
+            get_key(args);
         else
             gen_key(args, flags);
     }
@@ -312,10 +312,10 @@ void des(t_cipher_args *args, int flags) {
 
     u_int64_t blocks_in[blocks_len];
     u_int64_t blocks_out[blocks_len];
-    text_to_blocks(args->text, args->text_len, blocks_in);
+    text_to_blocks((u_int8_t *)args->text, args->text_len, blocks_in);
 
 
-    for (int i = 0; i < blocks_len; i++) {
+    for (size_t i = 0; i < blocks_len; i++) {
         if (args->mode == MODE_CBC && !(flags & FLAG_D))
             blocks_in[i] ^= (i == 0 ? args->iv : blocks_out[i-1]);
 

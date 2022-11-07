@@ -40,7 +40,7 @@ void hash(t_command *command, int ac, char **av) {
     int flags = 0;
     t_hash_args *args = parse_hash(ac, av, &flags);
     while (args) {
-        args->output = ((char *(*)(char *, size_t))command->f)(args->content, ft_strlen(args->content));
+        args->output = (u_int8_t *)((char *(*)(char *, size_t))command->f)(args->content, ft_strlen(args->content));
         show_hash(*command, *args, flags);
         args = args->next;
     }

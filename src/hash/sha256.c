@@ -85,5 +85,5 @@ char *sha256(char *s, size_t sz) {
         result[i * 4 + 2] = (H[i] >> 8) & 0xff;
         result[i * 4 + 3] = (H[i]) & 0xff;
     }
-    return result;
+    return (char *)result;
 }
