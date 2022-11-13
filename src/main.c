@@ -1,15 +1,13 @@
 #include "../ft_ssl.h"
 
+char *md5(char *s, size_t sz);
+
 t_command g_hash[5] = {
-    //{"md5", md5, 16}, 
-    //{"sha224", sha224, 28, "pqrs"}, 
+    {"md5", md5, 16, "pqrs"}, 
+    {"sha224", sha224, 28, "pqrs"}, 
     {"sha256", sha256, 32, "pqrs"}, 
-    {"sha256", sha256, 32, "pqrs"}, 
-    {"sha256", sha256, 32, "pqrs"}, 
-    {"sha256", sha256, 32, "pqrs"}, 
-    {"sha256", sha256, 32, "pqrs"}, 
-    //{"sha384", sha384, 48, "pqrs"}, 
-    //{"sha512", sha512, 64, "pqrs"},
+    {"sha384", sha384, 48, "pqrs"}, 
+    {"sha512", sha512, 64, "pqrs"},
 };
 
 t_command g_cipher[4] = {

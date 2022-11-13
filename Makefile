@@ -1,8 +1,8 @@
 
 NAME = ft_ssl
 
-#SRCS = $(addprefix src/, main.c common.c str.c parse.c $(addprefix cipher/, base64.c des.c) $(addprefix hash/, md5.c sha224.c sha256.c sha384.c sha512.c padding.c pbkdf2.c)) 
-SRCS = $(addprefix src/, main.c common.c str.c parse.c $(addprefix cipher/, base64.c des.c) $(addprefix hash/,$ sha256.c padding.c pbkdf2.c)) 
+SRCS = $(addprefix src/, main.c common.c str.c parse.c $(addprefix rsa/, prime.c) $(addprefix cipher/, base64.c des.c) $(addprefix hash/, md5.c sha224.c sha256.c sha384.c sha512.c padding.c pbkdf2.c)) 
+#SRCS = $(addprefix src/, main.c common.c str.c parse.c $(addprefix cipher/, base64.c des.c) $(addprefix hash/,$ sha256.c padding.c pbkdf2.c)) 
 
 OBJS = $(SRCS:.c=.o)
 

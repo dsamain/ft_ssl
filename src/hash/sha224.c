@@ -23,14 +23,14 @@ static u_int32_t k[64] = {
 		0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
 	};
 
-char *sha224(char *s) {
+char *sha224(char *s, size_t sz) {
     u_int32_t H[8] = {
         0xc1059ed8, 0x367cd507, 0x3070dd17, 0xf70e5939,
         0xffc00b31, 0x68581511, 0x64f98fa7, 0xbefa4fa4
     };
 
     size_t len;
-    u_int8_t *padded = padding(s, &len);
+    u_int8_t *padded = padding(s, sz, &len);
 
     while (len) {
         u_int32_t w[64];
@@ -85,5 +85,5 @@ char *sha224(char *s) {
         result[i * 4 + 2] = (H[i] >> 8) & 0xff;
         result[i * 4 + 3] = (H[i]) & 0xff;
     }
-    return result;
+    return (char *)result;
 }

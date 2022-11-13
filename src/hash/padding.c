@@ -19,8 +19,7 @@ u_int8_t *padding(char *s, u_int64_t sz, size_t *len) {
     return ret;
 }
 
-u_int8_t *padding_512(char *s, size_t *len) {
-    u_int64_t sz = ft_strlen(s);
+u_int8_t *padding_512(char *s, u_int64_t sz, size_t *len) {
     u_int64_t tot = sz + 17; // 8 bits fot the size + 1 bit for the 1
     tot += (tot % 128) ? (128 - tot % 128) : 0;
 

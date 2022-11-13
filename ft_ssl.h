@@ -108,11 +108,11 @@ t_cipher_args parse_cipher(int ac, char **av, int *flags, t_command *command);
 
 
 // hash
-char *md5(char *s);
-char *sha224(char *s);
+char *md5(char *s, size_t sz);
+char *sha224(char *s, size_t sz);
 char *sha256(char *s, size_t sz);
-char *sha384(char *s);
-char *sha512(char *s);
+char *sha384(char *s, size_t sz);
+char *sha512(char *s, size_t sz);
 char *pbkdf2(char *password, char *salt, int iterations, int key_len);
 char *hmac_sha256(u_int8_t *text, size_t text_len, u_int8_t *key, size_t key_len);
 
@@ -124,7 +124,7 @@ char *decrypt_base64(char *text, size_t text_len, size_t *ret_len);
 
 // padding
 u_int8_t *padding(char *s, size_t sz, size_t *len);
-u_int8_t *padding_512(char *s, size_t *len);
+u_int8_t *padding_512(char *s, u_int64_t sz, size_t *len);
 
 // str
 char *str_to_upper(char *s);

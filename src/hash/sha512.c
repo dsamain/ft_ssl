@@ -51,14 +51,14 @@ static u_int64_t k[80] = {
 	    0x5fcb6fab3ad6faecULL, 0x6c44198c4a475817ULL
 	};
 
-char *sha512(char *s) {
+char *sha512(char *s, size_t sz) {
     u_int64_t H[8] = {
         0x6a09e667f3bcc908ULL, 0xbb67ae8584caa73bULL, 0x3c6ef372fe94f82bULL, 0xa54ff53a5f1d36f1ULL,
         0x510e527fade682d1ULL, 0x9b05688c2b3e6c1fULL, 0x1f83d9abfb41bd6bULL, 0x5be0cd19137e2179ULL
     };
 
     size_t len;
-    u_int8_t *padded = padding_512(s, &len);
+    u_int8_t *padded = padding_512(s, sz, &len);
     while (len) {
         u_int64_t w[80] = {0};
         for (int i = 0; i < 80; i++) {
@@ -123,5 +123,5 @@ char *sha512(char *s) {
         //result[i * 4 + 3] = (H[i]) & 0xff;
         //result[i * 4 + 3] = (H[i]) & 0xff;
     }
-    return result;
+    return (char *)result;
 }
