@@ -12,7 +12,7 @@
 #ifdef DEBUG
     #include <stdio.h>
     #include <string.h>
-    #define dbg(s, ...) {dprintf(2, "dbg: "); dprintf(2, "%s", __VA_ARGS__);}
+    #define dbg(s, ...) {dprintf(2, "dbg: "); dprintf(2, s, __VA_ARGS__);}
 #else
     #define dbg(x)
 #endif
@@ -115,6 +115,7 @@ char *sha384(char *s, size_t sz);
 char *sha512(char *s, size_t sz);
 char *pbkdf2(char *password, char *salt, int iterations, int key_len);
 char *hmac_sha256(u_int8_t *text, size_t text_len, u_int8_t *key, size_t key_len);
+void show_hash(t_command command, t_hash_args args, int flags);
 
 // cipher
 void des(t_cipher_args *args, int flags);

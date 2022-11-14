@@ -1,6 +1,9 @@
-#include "../ft_ssl.h"
+//#include "../ft_ssl.h"
+#include "rsa/rsa.h"
 
 char *md5(char *s, size_t sz);
+
+
 
 t_command g_hash[5] = {
     {"md5", md5, 16, "pqrs"}, 
@@ -16,23 +19,6 @@ t_command g_cipher[4] = {
     {"des-ecb", des, 0, "adeikopsv"}, 
     {"des-cbc", des, 0, "adeikopsv"},
 };
-
-void show_hash(t_command command, t_hash_args args, int flags) {
-
-    if (flags & FLAG_Q) {
-        put_hex(args.output, command.output_size);
-    } else if (flags & FLAG_R) {
-        put_hex(args.output, command.output_size);
-        args.source[ft_strlen(args.source) - 1] = 0;
-        PUT(" ");
-        PUT(args.source + 1);
-    } else {
-        PUT(args.source);
-        PUT("= ");
-        put_hex(args.output, command.output_size);
-    }
-    PUT("\n");
-}
 
 void hash(t_command *command, int ac, char **av) {
     int flags = 0;
@@ -53,6 +39,11 @@ void cipher(t_command *command, int ac, char **av) {
 
 
 int main(int ac, char **av) {
+
+
+    gen_rsa(ac, av);
+
+    return 0;
 
     if (ac == 1) {
         help();
