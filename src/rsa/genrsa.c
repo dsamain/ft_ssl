@@ -4,27 +4,26 @@ void parse_gen_rsa(int ac, char **av) {
     (void)ac, (void)av;
 }
 
-u_int8_t is_prime2(u_int64_t n) {
-    for (u_int64_t i = 2; i * i <= n; i++) {
-        if (n % i == 0)
-            return 0;
-    }
-    return 1;
-}
-
 void gen_rsa(int ac, char **av) {
-    for (int i = 2; i < 10000; i++) {
-        if (is_prime2(i) != is_prime(i, 100000)) {
-            PUT("cringe\n");
-            dbg("%d %d %d\n", i, is_prime2(i), is_prime(i, 100));
-            //return;
-        }
-        if (is_prime(i, 100))
-            dbg("i : %d\n", i);
-        //if (is_prime(i, 100)) {
-            //dbg("%d\n", i);
-        //}
-    }
+    PUT("Generating RSA private key, 64 bit long modulus (2 primes)\n");
+
+    t_rsa_key key = INIT_RSA_KEY;
+
+    key.p = gen_prime(KEY_SIZE / 2);
+    key.q = gen_prime(KEY_SIZE / 2);
+    key.n = key.p * key.q;
+    key.phi = (key.p - 1) * (key.q - 1);
+    key.d = invmod(key.e, key.phi);
+    key.d1 = key.d % (key.p - 1);
+    key.d2 = key.d % (key.q - 1);
+    key.qinv = invmod(key.q, key.p);
+
+    //dbg("p q n = %lu %lu %lu\n", key.p, key.q, key.n);
+
+    char *b64_key = rsa_key_pem(&key);
+    PUT("-----BEGIN RSA PRIVATE KEY-----\n");
+    PUT(b64_key);
+    PUT("\n-----END RSA PRIVATE KEY-----\n");
 
     (void)ac, (void)av;
 }

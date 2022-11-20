@@ -88,6 +88,8 @@ extern t_command g_cipher[4];
 
 // common
 t_command *find_command(char *s, t_command *commands, size_t command_size);
+void ft_memcpy(void *dst, void *src, size_t size);
+char *ft_to_str(void *n, size_t size);
 void put_hex(u_int8_t *a, int size);
 void put_hex_n(u_int64_t a, int size);
 void push_hash_args(t_hash_args **args);

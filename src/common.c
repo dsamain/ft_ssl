@@ -91,6 +91,14 @@ u_int64_t str_to_u64(char *s) {
     return ret;
 }
 
+char *ft_to_str(void *n, size_t size) {
+    char *ret = ft_malloc(size + 1);
+    for (size_t i = 0; i < size; i++)
+        ret[i] = ((u_int8_t *)n)[size - i - 1];
+    ret[size] = 0;
+    return ret;
+}
+
 u_int8_t *read_fd(int fd, size_t *len) {
 
     if (fd == 0) {
@@ -129,4 +137,9 @@ u_int8_t *read_fd(int fd, size_t *len) {
     }
     return (u_int8_t *)ret;
 
+}
+
+void ft_memcpy(void *dst, void *src, size_t size) {
+    for (size_t i = 0; i < size; i++)
+        ((u_int8_t *)dst)[i] = ((u_int8_t *)src)[i];
 }
