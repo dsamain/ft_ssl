@@ -9,10 +9,11 @@ void check_text(char *text, size_t text_len) {
     int cnt = 0;
     for (size_t i = 0; text_len; i++) {
         if (text[i] == '\n') {
-            if (i == text_len - 1)
-                break;
-            if (cnt % BN_POS != 0)
-                throw("invalid base64 input\n");
+            continue;
+            //if (i == text_len - 1)
+                //break;
+            //if (cnt % BN_POS != 0)
+                //throw("invalid base64 input\n");
         } else if (!ft_strchr(base, text[i]) && text[i] != '=') {
             throw("invalid base64 input\n");
         } else {
@@ -26,7 +27,7 @@ void check_text(char *text, size_t text_len) {
 
 char *decrypt_base64(char *text, size_t text_len, size_t *ret_len) {
 
-    check_text(text, text_len);
+    //check_text(text, text_len);
 
     char *ret = ft_malloc(text_len * 4 / 3 + 1);
     int k = 0;

@@ -80,3 +80,11 @@ char *ft_strchr(char *s, char c) {
             return s + i;
     return NULL;
 }
+
+char *ft_strndup(char *s, int n) {
+    char *ret = ft_malloc(n + 1);
+    for (int i = 0; i < n; i++)
+        ret[i] = s[i];
+    ret[n] = 0;
+    return ret;
+}

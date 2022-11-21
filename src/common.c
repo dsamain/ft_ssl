@@ -129,7 +129,7 @@ u_int8_t *read_fd(int fd, size_t *len) {
     if (buf.st_size == 0)
         ret = ft_join("", NULL);
     else 
-        ret = mmap(NULL, buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+        ret = mmap(NULL, buf.st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
     
 
     if (ret == MAP_FAILED) {
@@ -142,4 +142,21 @@ u_int8_t *read_fd(int fd, size_t *len) {
 void ft_memcpy(void *dst, void *src, size_t size) {
     for (size_t i = 0; i < size; i++)
         ((u_int8_t *)dst)[i] = ((u_int8_t *)src)[i];
+}
+
+
+void put_hex_fd(u_int8_t *n, int size, int fd) {
+    char *base = "0123456789ABCDEF";
+    if (n[0] == 0) {
+        if (size == 1) {
+            write(fd, "0", 1);
+            return ;
+        } else {
+            n++;
+        }
+    }
+    for (int i = 0; i < size; i++) {
+        write(fd, &base[n[i] >> 4], 1);
+        write(fd, &base[n[i] & 0xf], 1);
+    }
 }

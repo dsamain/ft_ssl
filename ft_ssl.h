@@ -93,6 +93,7 @@ void ft_memcpy(void *dst, void *src, size_t size);
 char *ft_to_str(void *n, size_t size);
 void put_hex(u_int8_t *a, int size);
 void put_hex_n(u_int64_t a, int size);
+void put_hex_fd(u_int8_t *n, int size, int fd);
 void push_hash_args(t_hash_args **args);
 void *ft_malloc(size_t size);
 u_int64_t str_to_u64(char *s);
@@ -128,6 +129,7 @@ char *decrypt_base64(char *text, size_t text_len, size_t *ret_len);
 
 // rsa
 void genrsa(int ac, char **av);
+void rsa(int ac, char **av);
 
 // padding
 u_int8_t *padding(char *s, size_t sz, size_t *len);
@@ -143,3 +145,4 @@ int ft_strlen(char *s);
 char *ft_strchr(char *s, char c);
 char *cat_f(char *s, ...);
 char ft_tolower(char c);
+char *ft_strndup(char *s, int n);

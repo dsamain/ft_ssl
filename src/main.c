@@ -20,8 +20,9 @@ t_command g_cipher[4] = {
     {"des-cbc", des, 0, "adeikopsv"},
 };
 
-t_command g_other[1] = {
+t_command g_other[2] = {
     {"genrsa", genrsa, 0, ""},
+    {"rsa", rsa, 0, ""},
 };
 
 void hash(t_command *command, int ac, char **av) {

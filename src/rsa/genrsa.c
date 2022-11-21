@@ -10,10 +10,10 @@ void genrsa_help() {
 
 void parse_genrsa(int ac, char **av, int *fd) {
     for (int i = 2; i < ac; i++) {
-        if (!strcmp(av[i], "-h") || !strcmp(av[i], "--help")) {
+        if (!ft_strcmp(av[i], "-h") || !ft_strcmp(av[i], "--help")) {
             genrsa_help();
             exit(0);
-        } else if (!strcmp(av[i], "-o") || !strcmp(av[i], "--out")) {
+        } else if (!ft_strcmp(av[i], "-o") || !ft_strcmp(av[i], "--out")) {
             if (i == ac - 1)
                 throw(cat("ft_ssl: genrsa: option ", av[i], " requires an argument\n"));
             i++;
