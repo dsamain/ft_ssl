@@ -4,7 +4,7 @@
 char *md5(char *s, size_t sz);
 
 
-
+// t_command include command name, command function, output length, available options
 t_command g_hash[5] = {
     {"md5", md5, 16, "pqrs"}, 
     {"sha224", sha224, 28, "pqrs"}, 
@@ -18,6 +18,10 @@ t_command g_cipher[4] = {
     {"des", des, 0, "adeikopsv"}, 
     {"des-ecb", des, 0, "adeikopsv"}, 
     {"des-cbc", des, 0, "adeikopsv"},
+};
+
+t_command g_other[1] = {
+    {"genrsa", genrsa, 0, ""},
 };
 
 void hash(t_command *command, int ac, char **av) {
@@ -41,10 +45,6 @@ void cipher(t_command *command, int ac, char **av) {
 int main(int ac, char **av) {
 
 
-    gen_rsa(ac, av);
-
-    return 0;
-
     if (ac == 1) {
         help();
         return 0;
@@ -55,8 +55,9 @@ int main(int ac, char **av) {
         hash(command, ac, av);
     } else if ((command = find_command(av[1], g_cipher, sizeof(g_cipher)))) {
         cipher(command, ac, av);
+    } else if ((command = find_command(av[1], g_other, sizeof(g_other)))) {
+        ((void (*)(int, char **))command->f)(ac, av);
     } else {
         help();
-        //throw(cat("ft_ssl: \"", av[1], "\" is an invalid command.\n"));
     }
 }

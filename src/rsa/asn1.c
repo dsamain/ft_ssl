@@ -18,14 +18,26 @@ char *tlv_triplet(u_int8_t id, u_int8_t len) {
 }
 
 char *asn1_type(u_int8_t id, char *data, u_int8_t len, int *ret_len) {
+    u_int8_t offset = 0;
+    if ((data[0] >> 7) & 1) {
+        offset = 1;
+    }
     char *triplet = tlv_triplet(id, len);
-    char *ret = ft_malloc(len + strlen(triplet));
+    char *ret = ft_malloc(len + strlen(triplet) + offset);
     ft_memcpy(ret, triplet, strlen(triplet));
-    ft_memcpy(ret + strlen(triplet), data, len);
+    ft_memcpy(ret + strlen(triplet) + offset, data, len);
+    if (offset)
+        ret[strlen(triplet)] = 0;
     *ret_len = len + strlen(triplet);
     free(triplet);
     return ret;
 }
+
+#define ASN1_ADD_TYPE(id, data, len) \
+    char *type_##id = asn1_type(id, data, len, &len_##id); \
+    ft_memcpy(ret + offset, type_##id, len_##id); \
+    offset += len_##id; \
+    free(type_##id);
 
 // format key to asn.1 PEM with in order : version, n, e, d, p, q, d1, d2, iqmp
 char *rsa_key_pem(t_rsa_key *key)

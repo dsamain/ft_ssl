@@ -103,8 +103,7 @@ static inline u_int64_t rand_range(u_int64_t l, u_int64_t r) {
 }
 
 
-void gen_rsa(int ac, char **av);
-u_int8_t is_prime(u_int64_t n, u_int32_t k);
+u_int8_t is_prime(u_int64_t n, u_int32_t k, u_int32_t *rm_cnt);
 u_int64_t gen_prime();
 
 // asn1

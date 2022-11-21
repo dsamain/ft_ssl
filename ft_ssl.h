@@ -19,6 +19,7 @@
 
 // io 
 #define PUT(x) write(1, x, ft_strlen(x))
+#define put_fd(x, fd) write(fd, x, ft_strlen(x))
 #define PUT_ERR(x) write(2, x, ft_strlen(x))
 #define throw(x) {PUT_ERR("Error: "); PUT_ERR(x); exit(1);}
 #define cat(...) (cat_f(__VA_ARGS__, NULL))
@@ -124,6 +125,9 @@ void des(t_cipher_args *args, int flags);
 void base64(t_cipher_args *args, int flags);
 char *encrypt_base64(char *text, size_t text_len, size_t *ret_len);
 char *decrypt_base64(char *text, size_t text_len, size_t *ret_len);
+
+// rsa
+void genrsa(int ac, char **av);
 
 // padding
 u_int8_t *padding(char *s, size_t sz, size_t *len);
