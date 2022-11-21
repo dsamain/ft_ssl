@@ -49,7 +49,7 @@ void genrsa(int ac, char **av) {
 
     //dbg("p q n = %lu %lu %lu\n", key.p, key.q, key.n);
 
-    char *b64_key = rsa_key_pem(&key);
+    char *b64_key = rsa_key_pem_64(&key);
     put_fd("-----BEGIN RSA PRIVATE KEY-----\n", out_fd);
     put_fd(b64_key, out_fd);
     put_fd("\n-----END RSA PRIVATE KEY-----\n", out_fd);

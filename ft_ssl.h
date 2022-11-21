@@ -21,7 +21,7 @@
 #define PUT(x) write(1, x, ft_strlen(x))
 #define put_fd(x, fd) write(fd, x, ft_strlen(x))
 #define PUT_ERR(x) write(2, x, ft_strlen(x))
-#define throw(x) {PUT_ERR("Error: "); PUT_ERR(x); exit(1);}
+#define throw(x) {clear_garbage(); PUT_ERR("Error: "); PUT_ERR(x); exit(1);}
 #define cat(...) (cat_f(__VA_ARGS__, NULL))
 
 // Hash 
@@ -84,8 +84,14 @@ typedef struct t_cipher_args {
     u_int8_t mode;
 } t_cipher_args;
 
+typedef struct t_garbage {
+    void *ptr;
+    struct t_garbage *next;
+} t_garbage;
+
 extern t_command g_hash[5];
 extern t_command g_cipher[4];
+extern t_garbage *g_garbage;
 
 // common
 t_command *find_command(char *s, t_command *commands, size_t command_size);
@@ -99,6 +105,8 @@ void *ft_malloc(size_t size);
 u_int64_t str_to_u64(char *s);
 u_int8_t *read_fd(int fd, size_t *len);
 void show_hash(t_command command, t_hash_args args, int flags);
+void add_garbage(void *ptr);
+void clear_garbage();
 int help();
 
 // dbg

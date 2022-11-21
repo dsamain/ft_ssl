@@ -1,8 +1,7 @@
 //#include "../ft_ssl.h"
 #include "rsa/rsa.h"
 
-char *md5(char *s, size_t sz);
-
+t_garbage *g_garbage = NULL;
 
 // t_command include command name, command function, output length, available options
 t_command g_hash[5] = {

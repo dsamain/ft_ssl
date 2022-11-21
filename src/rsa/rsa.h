@@ -171,6 +171,6 @@ static inline u_int64_t rand_range(u_int64_t l, u_int64_t r) {
 u_int8_t is_prime(u_int64_t n, u_int32_t k, u_int32_t *rm_cnt);
 u_int64_t gen_prime();
 // asn1
-char *rsa_key_pem(t_rsa_key *key);
+char *rsa_key_pem_64(t_rsa_key *key);
 t_rsa_private_asn1 parse_private_key(t_rsa_args *args);
 t_rsa_public_asn1 parse_public_key(t_rsa_args *args);

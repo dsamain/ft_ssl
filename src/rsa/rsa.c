@@ -78,15 +78,20 @@ void rsa(int ac, char **av) {
     t_rsa_args args = INIT_RSA_ARGS;
     int flags = 0;
     parse_rsa(ac, av, &args, &flags);
-    if (!(flags & RSA_FLAG_IN)) {
+    if (!(flags & RSA_FLAG_IN))
         args.content = (char *)read_fd(0, &args.content_len);
-    }
+
+    // if private to pub -> parse + convert
+    // else parse to check error into reprint input
     
     // key is private
     if (!(flags & RSA_FLAG_PUBIN)) {
         t_rsa_private_asn1 key = parse_private_key(&args);
 
         if (flags & RSA_FLAG_PUBOUT) {
+
+            // need key in PEM format
+
             char *b64 = encrypt_base64((char *)key.modulus, key.modulus_len, NULL);
             put_fd("public key : \n", args.out_fd);
             put_fd(b64,  args.out_fd);

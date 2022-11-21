@@ -9,11 +9,9 @@ int ft_strlen(char *s) {
 }
 
 char *ft_join(char *s, char *t) {
-    char *ret = malloc(ft_strlen(s) + ft_strlen(t) + 1);
-    if (!ret) {
+    char *ret = ft_malloc(ft_strlen(s) + ft_strlen(t) + 1);
+    if (!ret)
         throw("malloc error\n");
-    }
-
     int i = 0;
     for (int j = 0; s && s[j]; j++, i++) 
         ret[i] = s[j];

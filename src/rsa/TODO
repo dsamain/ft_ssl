@@ -1,2 +1,6 @@
-- handle first bit set in pem
-- put +.
+- cleaner asn1 parse maybe (put get_elem lenght + check in the same function)
+- rsa key out
+- rsa flag
+- rsault
+
+- bonus
