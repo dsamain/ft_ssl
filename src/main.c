@@ -1,8 +1,6 @@
 //#include "../ft_ssl.h"
 #include "rsa/rsa.h"
 
-t_garbage *g_garbage = NULL;
-
 // t_command include command name, command function, output length, available options
 t_command g_hash[5] = {
     {"md5", md5, 16, "pqrs"}, 
@@ -19,9 +17,10 @@ t_command g_cipher[4] = {
     {"des-cbc", des, 0, "adeikopsv"},
 };
 
-t_command g_other[2] = {
+t_command g_other[3] = {
     {"genrsa", genrsa, 0, ""},
     {"rsa", rsa, 0, ""},
+    {"rsautl", rsautl, 0, ""},
 };
 
 void hash(t_command *command, int ac, char **av) {
@@ -36,7 +35,7 @@ void hash(t_command *command, int ac, char **av) {
 
 void cipher(t_command *command, int ac, char **av) {
     int flags = 0;
-    t_cipher_args args = parse_cipher(ac, av, &flags, command);
+    t_cipher_args args = parse_cipher(ac, av, &flags);
 
     ((void(*)(t_cipher_args *, int))command->f)(&args, flags);
 }
@@ -44,7 +43,26 @@ void cipher(t_command *command, int ac, char **av) {
 
 int main(int ac, char **av) {
 
+    dbg("bonjour a tous\n");
+    //dbg("pouet = %d\n", 42);
 
+    char **tmp = ft_malloc(sizeof(char *) * 3);
+    tmp[0] = ft_malloc(sizeof(char) * 3, 1);
+    tmp[1] = ft_malloc(sizeof(char) * 3, 2);
+    tmp[2] = ft_malloc(sizeof(char) * 3, 42);
+
+    ft_free(0);
+    ft_free(1);
+    ft_free(2);
+    ft_free(42);
+    tmp[1] = ft_malloc(sizeof(char) * 3, 2);
+    tmp[1] = ft_malloc(sizeof(char) * 3, 2);
+    ft_free(1);
+    tmp[1] = ft_malloc(sizeof(char) * 3, 2);
+    dbg("tmp[1] : %s\n", tmp[1]);
+    throw("wouah\n");
+
+    return 0;
     if (ac == 1) {
         help();
         return 0;

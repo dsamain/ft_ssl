@@ -32,6 +32,18 @@ typedef struct s_rsa_args {
     size_t content_len;
 } t_rsa_args;
 
+//ft_ssl rsautl [-in file] [-out file] [-inkey file] [-pubin] [-encrypt] [-decrypt] [-hexdump]
+#define INIT_RSAUTL_ARGS {1, 0, -1, (char *)NULL, (char *)NULL, (size_t)0, (size_t)0}
+typedef struct s_rsautl_args {
+    int out_fd;
+    int in_fd;
+    int in_key_fd;
+    char *content;
+    char *key;
+    size_t content_len;
+    size_t key_len;
+} t_rsautl_args;
+
 #define INIT_RSA_KEY {(ull)0, (ull)0, (ull)PUBLIC_EXPONENT, (ull)0, (ull)0, (ull)0, (ull)0, (ull)0, (ull)0}
 typedef struct s_rsa_key {
     u_int64_t p; // prime 1
@@ -174,3 +186,4 @@ u_int64_t gen_prime();
 char *rsa_key_pem_64(t_rsa_key *key);
 t_rsa_private_asn1 parse_private_key(t_rsa_args *args);
 t_rsa_public_asn1 parse_public_key(t_rsa_args *args);
+void asn1_private_to_public(t_rsa_private_asn1 *private_key);

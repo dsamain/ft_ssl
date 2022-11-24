@@ -7,22 +7,21 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 
-#define DEBUG
+#include "src/garbage_collector/gc.h"
+#include "io.h"
 
-#ifdef DEBUG
-    #include <stdio.h>
-    #include <string.h>
-    #define dbg(s, ...) {dprintf(2, "dbg: "); dprintf(2, s, __VA_ARGS__);}
-#else
-    #define dbg(x)
-#endif
 
-// io 
-#define PUT(x) write(1, x, ft_strlen(x))
-#define put_fd(x, fd) write(fd, x, ft_strlen(x))
-#define PUT_ERR(x) write(2, x, ft_strlen(x))
-#define throw(x) {clear_garbage(); PUT_ERR("Error: "); PUT_ERR(x); exit(1);}
-#define cat(...) (cat_f(__VA_ARGS__, NULL))
+#define VA_ARGS(...) , ##__VA_ARGS__
+#define test_mult PUT("test_mult\n")
+#define test_one PUT("test_one\n")
+#define test(s, ...) { \
+    if (sizeof((int[]){__VA_ARGS__})/sizeof(int) > 1) { \
+        test_mult; \
+    } else { \
+        test_one; \
+    } \
+} \
+
 
 // Hash 
 #define little_endian(x) ((x & 0xff) << 24) | ((x & 0xff00) << 8) | ((x & 0xff0000) >> 8) | ((x & 0xff000000) >> 24)
@@ -84,14 +83,10 @@ typedef struct t_cipher_args {
     u_int8_t mode;
 } t_cipher_args;
 
-typedef struct t_garbage {
-    void *ptr;
-    struct t_garbage *next;
-} t_garbage;
 
 extern t_command g_hash[5];
 extern t_command g_cipher[4];
-extern t_garbage *g_garbage;
+extern t_gc *g_garbage;
 
 // common
 t_command *find_command(char *s, t_command *commands, size_t command_size);
@@ -101,12 +96,9 @@ void put_hex(u_int8_t *a, int size);
 void put_hex_n(u_int64_t a, int size);
 void put_hex_fd(u_int8_t *n, int size, int fd);
 void push_hash_args(t_hash_args **args);
-void *ft_malloc(size_t size);
 u_int64_t str_to_u64(char *s);
 u_int8_t *read_fd(int fd, size_t *len);
 void show_hash(t_command command, t_hash_args args, int flags);
-void add_garbage(void *ptr);
-void clear_garbage();
 int help();
 
 // dbg
@@ -116,7 +108,7 @@ void putb_n(u_int64_t n, int size);
 
 // parsing
 t_hash_args *parse_hash(int ac, char **av, int *flags);
-t_cipher_args parse_cipher(int ac, char **av, int *flags, t_command *command);
+t_cipher_args parse_cipher(int ac, char **av, int *flags);
 
 
 // hash
@@ -138,6 +130,7 @@ char *decrypt_base64(char *text, size_t text_len, size_t *ret_len);
 // rsa
 void genrsa(int ac, char **av);
 void rsa(int ac, char **av);
+void rsautl(int ac, char **av);
 
 // padding
 u_int8_t *padding(char *s, size_t sz, size_t *len);

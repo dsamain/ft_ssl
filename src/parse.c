@@ -19,7 +19,7 @@ u_int64_t parse_hex_to_u64(char *key) {
 }
 
 
-t_cipher_args parse_cipher(int ac, char **av, int *flags, t_command *command) {
+t_cipher_args parse_cipher(int ac, char **av, int *flags) {
     t_cipher_args ret = INIT_CIPHER_ARGS;
 
     if (!ft_strncmp(av[1], "des", 3))
@@ -28,10 +28,6 @@ t_cipher_args parse_cipher(int ac, char **av, int *flags, t_command *command) {
     for (int i = 2; i < ac ; i++) {
         if (av[i][0] != '-') {
             throw("Extra arguments given.\n");
-        }
-
-        if (!ft_strchr(command->available_flags, av[i][1])) {
-            throw("Invalid flag given.\n");
         }
         
         if (!ft_strcmp(av[i], "-e")) {

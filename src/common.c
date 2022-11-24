@@ -74,13 +74,6 @@ void push_hash_args(t_hash_args **args) {
     *args = new;
 }
 
-void *ft_malloc(size_t size) {
-    void *ret = malloc(size);
-    if (!ret) throw("malloc error");
-    add_garbage(ret);
-    return ret;
-}
-
 u_int64_t str_to_u64(char *s) {
     char *base = "0123456789abcdef";
     u_int64_t ret = 0;
@@ -159,23 +152,5 @@ void put_hex_fd(u_int8_t *n, int size, int fd) {
     for (int i = 0; i < size; i++) {
         write(fd, &base[n[i] >> 4], 1);
         write(fd, &base[n[i] & 0xf], 1);
-    }
-}
-
-void add_garbage(void *ptr) {
-    t_garbage *new = malloc(sizeof(t_garbage));
-    if (!new) throw("malloc error");
-    new->ptr = ptr;
-    new->next = g_garbage;
-    g_garbage = new;
-}
-
-void clear_garbage() {
-    t_garbage *prev = g_garbage;
-    while (g_garbage) {
-        free(g_garbage->ptr);
-        prev = g_garbage;
-        g_garbage = g_garbage->next;
-        free(prev);
     }
 }

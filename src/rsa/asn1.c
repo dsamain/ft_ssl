@@ -1,13 +1,16 @@
 #include "rsa.h"
 
 // tlv_triplet : [id, len, value]
-char *tlv_triplet(u_int8_t id, u_int8_t len) {
+char *tlv_triplet(u_int8_t id, u_int32_t len) {
     size_t bytes = 1, start = 1, i;
 
-    if (len > 127)
-        while (len >> bytes)
+    if (len > 127) {
+        //len ^= (1 << 7);
+        while (len >> (bytes * 8))
             bytes++; 
-
+    }
+    dbg("len : %d\n", len);
+    dbg("bytes : %ld\n", bytes);
     char *triplet = ft_malloc(bytes + 2);
 
     triplet[0] = id;
@@ -17,7 +20,7 @@ char *tlv_triplet(u_int8_t id, u_int8_t len) {
         triplet[start++] = (1 << 7) | bytes;
 
     for (i = 0; i < bytes; i++)
-        triplet[start + i] = ((len >> (bytes - i - 1)) & 0xff);
+        triplet[start + i] = ((len >> ((bytes - i - 1)) * 8) & 0xff);
 
     triplet[start + i] = 0;
     return triplet;
@@ -62,7 +65,7 @@ char *rsa_key_pem_64(t_rsa_key *key)
     char *ret = ft_malloc(sizeof(int) * 100);
     size_t idx = 2;
 
-    // Sequence (9 elem) : [version, n, e, d, p, q, d1, d2, qinv]
+    // SEQUENCE (9 elem) : [version, n, e, d, p, q, d1, d2, qinv]
     append_asn1_number(ret, &idx, "\0", 1);
     append_asn1_number(ret, &idx, ft_to_str(&key->n, 8), 8);
     append_asn1_number(ret, &idx, ft_to_str(&key->e, 8), 8);
@@ -100,6 +103,125 @@ void get_asn1_number(u_int8_t *data, size_t *idx, u_int8_t **dest, size_t *dest_
         throw("Can't parse key");
     *dest = (u_int8_t *)ft_strndup((char *)data + *idx, *dest_len);
     *idx += *dest_len;
+}
+
+// SEQUENCE (2 elem)
+  // SEQUENCE (2 elem)
+    // OBJECT IDENTIFIER 1.2.840.113549.1.1.1 rsaEncryption (PKCS #1)
+    // NULL
+  // BIT STRING (2160 bit) 001100001000001000000001000010100000001010000010000000010000000100000…
+    // SEQUENCE (2 elem)
+// Offset: 24
+// Length: 4+266
+// (constructed)
+// Value:
+// (2 elem)
+      // INTEGER (2048 bit) 270948206434524864376531386076272800126502343643226434441426240139087…
+      // INTEGER 65537
+
+void asn1_private_to_public(t_rsa_private_asn1 *private_key) {
+    // max size of ret : 2 (seq1) + 2(seq1.1)  + 11(oi) + 2(NULL) + bit string(seq(2) + integer(modulus) + integer(exponent))
+    //char *ret = ft_malloc(size)
+    char *pref = ft_malloc(17);
+    //3023300D06092A864886F70D0101010500
+    //30230d06092a864886f70d01010105000064%
+    //30 23 30 0D 06 09 2A 86  48 86 F7 0D 01 01 01 05
+
+    char *modulus = tlv_triplet(ASN1_NUMBER, private_key->modulus_len);
+    size_t modul_len = ft_strlen(modulus) + private_key->modulus_len;
+
+    modulus = ft_join_len(modulus, ft_strlen(modulus), (char *)private_key->modulus, private_key->modulus_len);
+
+    char *exponent = tlv_triplet(ASN1_NUMBER, private_key->publicExponent_len);
+    size_t exp_len = ft_strlen(exponent) + private_key->publicExponent_len;
+
+    exponent = ft_join_len(exponent, ft_strlen(exponent), (char *)private_key->publicExponent, private_key->publicExponent_len);
+
+    char *seq1 = tlv_triplet(ASN1_SEQUENCE, modul_len + exp_len);
+    size_t seq1_len = ft_strlen(seq1);
+    seq1 = ft_join_len(seq1, ft_strlen(seq1), modulus, modul_len);
+    seq1_len += modul_len;
+    seq1 = ft_join_len(seq1, seq1_len, exponent, exp_len);
+    seq1_len += exp_len;
+
+    char *bit_string = tlv_triplet(ASN1_BIT_STRING, seq1_len);
+    size_t bit_len = ft_strlen(bit_string);
+    bit_string = ft_join_len(bit_string, ft_strlen(bit_string), "\x00", 1);
+    bit_len++;
+    bit_string = ft_join_len(bit_string, bit_len, seq1, seq1_len);
+    bit_len += seq1_len;
+
+
+    char *obj_id = tlv_triplet(ASN1_OI, 9);
+    size_t obj_len = ft_strlen(obj_id);
+    obj_id = ft_join_len(obj_id, ft_strlen(obj_id), "\x2a\x86\x48\x86\xf7\x0d\x01\x01\x01", 9);
+    obj_len += 9;
+    obj_id = ft_join_len(obj_id, obj_len, "\x05\x00", 2);
+    obj_len += 2;
+
+    char *seq2 = tlv_triplet(ASN1_SEQUENCE, obj_len);
+    size_t seq2_len = ft_strlen(seq2);
+    seq2 = ft_join_len(seq2, seq2_len, obj_id, obj_len);
+    seq2_len += obj_len;
+
+    char *ret = tlv_triplet(ASN1_SEQUENCE, bit_len + seq2_len);
+    size_t ret_len = ft_strlen(ret);
+    ret = ft_join_len(ret, ret_len, seq2, seq2_len);
+    ret_len += seq2_len;
+    ret = ft_join_len(ret, ret_len, bit_string, bit_len);
+    ret_len += bit_len;
+
+    PUT("oi:\n");
+    put_hex_fd((u_int8_t *)obj_id, obj_len, 1);
+    PUT("\n");
+
+    PUT("seq2:\n");
+    put_hex_fd((u_int8_t *)seq2, seq2_len, 1);
+    PUT("\n");
+
+    PUT("bit_string:\n");
+    put_hex_fd((u_int8_t *)bit_string, bit_len, 1);
+    PUT("\n");
+
+    PUT("seq1:\n");
+    put_hex_fd((u_int8_t *)seq1, seq1_len, 1);
+    PUT("\n");
+
+    PUT("--RET--\n");
+    put_hex_fd((u_int8_t *)ret, ret_len, 1);
+    PUT("\n");
+
+    char *b64 = encrypt_base64(ret, ret_len, NULL);
+
+    PUT("b64:\n");
+    PUT(b64);
+    PUT("\n");
+
+
+
+
+
+    ft_memcpy(pref, "\x30\x23\x30\x0D\x06\x09\x2A\x86\x48\x86\xF7\x0D\x01\x01\x01\x05\x00\x00", 17);
+
+    size_t size = private_key->modulus_len 
+                + private_key->publicExponent_len
+                + ft_strlen(tlv_triplet(ASN1_NUMBER, private_key->modulus_len)) 
+                + ft_strlen(tlv_triplet(ASN1_NUMBER, private_key->publicExponent_len));
+    dbg("size : %zu\n", size);
+    dbg("bitstring size : %d \n", ft_strlen(tlv_triplet(ASN1_BIT_STRING, size)));
+    size += ft_strlen(tlv_triplet(ASN1_BIT_STRING, size)) + 2; 
+
+
+    dbg ("size : %zu\n", size + 17);
+
+
+
+
+    //char *b64 = encrypt_base64(pref, 17, NULL);
+    //dbg("b64 : %s\n", b64);
+    //put_fd("pref :\n", 2);
+    //put_hex((u_int8_t *)pref, 18);
+    //(void)private_key;
 }
 
 u_int8_t *extract_data(char *content, size_t *start, size_t *len, char *header, char *footer) {

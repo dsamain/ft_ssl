@@ -82,19 +82,22 @@ void rsa(int ac, char **av) {
         args.content = (char *)read_fd(0, &args.content_len);
 
     // if private to pub -> parse + convert
+    // if public to private -> error
+
     // else parse to check error into reprint input
     
     // key is private
     if (!(flags & RSA_FLAG_PUBIN)) {
         t_rsa_private_asn1 key = parse_private_key(&args);
 
+        // private to public
         if (flags & RSA_FLAG_PUBOUT) {
 
             // need key in PEM format
-
-            char *b64 = encrypt_base64((char *)key.modulus, key.modulus_len, NULL);
-            put_fd("public key : \n", args.out_fd);
-            put_fd(b64,  args.out_fd);
+            asn1_private_to_public(&key);
+            //char *b64 = encrypt_base64((char *)key.modulus, key.modulus_len, NULL);
+            //put_fd("public key : \n", args.out_fd);
+            //put_fd(b64,  args.out_fd);
         }
     } else {
         t_rsa_public_asn1 key = parse_public_key(&args);
