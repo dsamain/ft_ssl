@@ -3,7 +3,7 @@ NAME = ft_ssl
 
 SRCS =  $(addprefix src/, \
 			main.c common.c str.c parse.c  \
-			$(addprefix rsa/, genrsa.c rsa.c rsautl.c prime.c asn1.c) \
+			$(addprefix rsa/, genrsa.c rsa.c rsautl.c prime.c asn1.c asn1_build.c) \
 			$(addprefix cipher/, base64.c des.c) \
 			$(addprefix hash/, md5.c sha224.c sha256.c sha384.c sha512.c padding.c pbkdf2.c hash_out.c) \
 			$(addprefix garbage_collector/, gc.c)) \
@@ -12,7 +12,7 @@ SRCS =  $(addprefix src/, \
 OBJS = $(SRCS:.c=.o)
 
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror
+#CFLAGS = -Wall -Wextra -Werror
 
 %.o: %.c
 	gcc -c -o $@ $(CFLAGS) $<

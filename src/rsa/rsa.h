@@ -187,3 +187,5 @@ char *rsa_key_pem_64(t_rsa_key *key);
 t_rsa_private_asn1 parse_private_key(t_rsa_args *args);
 t_rsa_public_asn1 parse_public_key(t_rsa_args *args);
 void asn1_private_to_public(t_rsa_private_asn1 *private_key);
+
+void test_asn1_build();

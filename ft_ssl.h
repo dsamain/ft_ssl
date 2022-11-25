@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
+#include <stdarg.h>
 
 #include "src/garbage_collector/gc.h"
 #include "io.h"

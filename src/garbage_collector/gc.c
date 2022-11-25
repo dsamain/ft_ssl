@@ -5,6 +5,8 @@ int ft_strlen(char *s);
 t_gc *g_garbage = NULL;
 
 void *ft_malloc_(size_t size, int flag) {
+    if (!size) return NULL;
+    //dbg("malloc(%d)\n", size);
     void *ret = malloc(size);
     if (!ret) throw("malloc error");
     add_garbage(ret, flag);
