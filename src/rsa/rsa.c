@@ -93,8 +93,26 @@ void rsa(int ac, char **av) {
         // private to public
         if (flags & RSA_FLAG_PUBOUT) {
 
-            // need key in PEM format
             asn1_private_to_public(&key);
+
+            char *asn1 = asn1_build( \
+                "SEQ { \
+                    SEQ { \
+                        OI \
+                        NULL \
+                    } BIT_STRING { \
+                        SEQ { \
+                            NUM \
+                            NUM \
+                    } \
+                    } \
+                }",  (t_asn1_arg){"\x2A\x86\x48\x86\xF7\x0D\x01\x01\x01", 9}, 
+                (t_asn1_arg){key.modulus, key.modulus_len}, 
+                (t_asn1_arg){key.publicExponent, key.publicExponent_len});
+
+            put_fd("-----BEGIN PUBLIC KEY-----\n", args.out_fd);
+            put_fd(asn1, args.out_fd);
+            put_fd("\n-----END PUBLIC KEY-----\n", args.out_fd);
             //char *b64 = encrypt_base64((char *)key.modulus, key.modulus_len, NULL);
             //put_fd("public key : \n", args.out_fd);
             //put_fd(b64,  args.out_fd);
