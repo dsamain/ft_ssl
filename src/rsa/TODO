@@ -1,3 +1,6 @@
+- asn1 builder (u_int64_t to asn1_num)
+- asn1 parser
+- some research on des format
 - rsa key out
 - rsa flag
 - rsault

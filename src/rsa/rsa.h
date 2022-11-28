@@ -89,6 +89,12 @@ typedef struct s_rsa_public_asn1 {
     size_t publicExponent_len;
 } t_rsa_public_asn1;
 
+typedef struct s_asn1_arg {
+    char *data;
+    size_t len;
+} t_asn1_arg;
+
+
 //ft_ssl rsa [-inform PEM] [-outform PEM] [-in file] [-passin arg] [-out file] [-passout arg] [-des] [-
 //text] [-noout] [-modulus] [-check] [-pubin] [-pubout]
 
@@ -183,6 +189,9 @@ static inline u_int64_t rand_range(u_int64_t l, u_int64_t r) {
 u_int8_t is_prime(u_int64_t n, u_int32_t k, u_int32_t *rm_cnt);
 u_int64_t gen_prime();
 // asn1
+t_asn1_arg ull_to_arg(u_int64_t n);
+char *asn1_build(char *format, ...);
+
 char *rsa_key_pem_64(t_rsa_key *key);
 t_rsa_private_asn1 parse_private_key(t_rsa_args *args);
 t_rsa_public_asn1 parse_public_key(t_rsa_args *args);

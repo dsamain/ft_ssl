@@ -43,8 +43,8 @@ void cipher(t_command *command, int ac, char **av) {
 
 int main(int ac, char **av) {
 
-    test_asn1_build();
-    return 0;
+    //test_asn1_build();
+    //return 0;
     //dbg("bonjour a tous\n");
     ////dbg("pouet = %d\n", 42);
 

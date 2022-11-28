@@ -47,11 +47,13 @@ void genrsa(int ac, char **av) {
     key.d2 = key.d % (key.q - 1);
     key.qinv = invmod(key.q, key.p);
 
-    //dbg("p q n = %lu %lu %lu\n", key.p, key.q, key.n);
+    char *output = asn1_build("  \
+        SEQ { NUM NUM NUM NUM NUM NUM NUM NUM NUM }", 
+        ull_to_arg(0), ull_to_arg(key.n), ull_to_arg(key.e), ull_to_arg(key.d), ull_to_arg(key.p), 
+        ull_to_arg(key.q), ull_to_arg(key.d1),  ull_to_arg(key.d2), ull_to_arg(key.qinv));
 
-    char *b64_key = rsa_key_pem_64(&key);
     put_fd("-----BEGIN RSA PRIVATE KEY-----\n", out_fd);
-    put_fd(b64_key, out_fd);
+    put_fd(output, out_fd);
     put_fd("\n-----END RSA PRIVATE KEY-----\n", out_fd);
 
     if (out_fd != 1)
