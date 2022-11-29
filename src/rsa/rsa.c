@@ -76,6 +76,8 @@ void parse_rsa(int ac, char **av, t_rsa_args *args, int *flags){
     }
 }
 
+/* need to parse only header + data + footer */
+
 void rsa(int ac, char **av) {
     t_rsa_args args = INIT_RSA_ARGS;
     int flags = 0;
@@ -83,11 +85,6 @@ void rsa(int ac, char **av) {
     if (!(flags & RSA_FLAG_IN))
         args.content = (char *)read_fd(0, &args.content_len);
 
-    // if private to pub -> parse + convert
-    // if public to private -> error
-
-    // else parse to check error into reprint input
-    dbg("out fd : %d", args.out_fd); 
     // key is private
     if (!(flags & RSA_FLAG_PUBIN)) {
         t_rsa_private_asn1 key = parse_private_key(&args);
@@ -101,6 +98,7 @@ void rsa(int ac, char **av) {
                         OI \
                         NULL \
                     } BIT_STRING { \
+                        SEQ { \
                             NUM \
                             NUM \
                         } \
@@ -112,15 +110,18 @@ void rsa(int ac, char **av) {
             put_fd("-----BEGIN PUBLIC KEY-----\n", args.out_fd);
             put_fd(asn1, args.out_fd);
             put_fd("\n-----END PUBLIC KEY-----\n", args.out_fd);
+
         } else {
             for (int i = 0; i < args.content_len; i++)
                 write(args.out_fd, &args.content[i], 1);
         }
 
     } else {
+
         t_rsa_public_asn1 key = parse_public_key(&args);
         for (int i = 0; i < args.content_len; i++)
             write(args.out_fd, &args.content[i], 1);
+
     }
 }
 

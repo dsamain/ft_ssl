@@ -7,7 +7,6 @@ void genrsa_help() {
     PUT("  -o, --out <file>\t\tOutput file (default: stdout)\n");
 }
 
-
 void parse_genrsa(int ac, char **av, int *fd) {
     for (int i = 2; i < ac; i++) {
         if (!ft_strcmp(av[i], "-h") || !ft_strcmp(av[i], "--help")) {
@@ -37,6 +36,7 @@ void genrsa(int ac, char **av) {
 
     key.p = gen_prime(KEY_SIZE / 2);
     key.q = gen_prime(KEY_SIZE / 2);
+    dbg("p q : %lu %lu", key.p, key.q);
 
     PUT("e is 65537 (0x10001)\n");
 

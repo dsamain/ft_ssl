@@ -1,5 +1,4 @@
-- rsa flag
-- rsault
-
-- bonus (des, dsa, break)
-- some research on des format
+- fix rsautl don't working with 64bit input sometime
+- few flags
+- testing
+- key break

@@ -119,9 +119,6 @@ void rsautl(int ac, char **av)  {
         args.content = (char *)read_fd(0, &args.content_len);
         args.content_len--;
     }
-    put_fd("content hex : \n", 2);
-    put_hex_fd(args.content, args.content_len, 2);
-    put_fd("\n", 2);
 
     u_int64_t exp = 0, mod = 0, m = 0;
     get_exp_mod_msg(&args, flags, &exp, &mod, &m);
@@ -132,13 +129,10 @@ void rsautl(int ac, char **av)  {
     u_int64_t c = 0;
     c = powmod(m, exp, mod);
 
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 8 && c >> (8 - i - 1) ; i++) {
+        if (!(c >> ((8 - i - 1) * 8)))
+            continue;
         char tmp = (c >> ((8 - i - 1) * 8)) & 0xff;
         write(args.out_fd, &tmp, 1);
     }
-    //while (c > 0) {
-        //char tmp = c & 0xFF;
-        //write(args.out_fd, &tmp, 1);
-        //c >>= 8;
-    //}
 }

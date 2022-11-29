@@ -1,4 +1,9 @@
-for i in {0..12}; do
+#!/bin/bash
+echo ""
+echo "************** TESTING DES **************"
+echo ""
+mkdir -p bin
+for i in {0..7}; do
 
     key=$(($RANDOM))
     n=$(($RANDOM))

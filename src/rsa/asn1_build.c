@@ -38,9 +38,6 @@ t_asn1_arg *build_tlv_len(t_asn1_arg args, int id) {
     if (bytes != 1)
         ret->data[start++] = (1 << 7) | bytes;
 
-    //if (offset)
-        //ret->data[start++] = 0;
-
     for (i = 0; i < bytes; i++)
         ret->data[start + i] = ((args.len >> ((bytes - i - 1)) * 8) & 0xff);
     ret->data[start + i] = 0;
@@ -85,13 +82,12 @@ t_asn1_arg *asn1_build_(char *format, void *void_args, int *idx) {
 
     for (; format[*idx]; (*idx)++) {
 
-        if (format[*idx] == '}' || !format[*idx]) {
+        if (format[*idx] == '}' || !format[*idx])
             return ret;
-        } 
 
         int id = 0;
-        if ((id = !ft_strncmp(format + *idx, "SEQ", 3) ? ASN1_SEQUENCE : 0) ||
-                (id = !ft_strncmp(format + *idx, "BIT_STRING", 10) ? ASN1_BIT_STRING : 0)) {
+        if ((id = !ft_strncmp(format + *idx, "SEQ", 3) ? ASN1_SEQUENCE : 0)
+            || (id = !ft_strncmp(format + *idx, "BIT_STRING", 10) ? ASN1_BIT_STRING : 0)) {
 
             while (format[*idx] != '{') 
                 (*idx)++;
@@ -102,8 +98,8 @@ t_asn1_arg *asn1_build_(char *format, void *void_args, int *idx) {
             ret->len += tmp->len;
         } 
 
-        if ((id = !ft_strncmp(format + *idx, "NUM", 3) ? ASN1_NUMBER : 0) || 
-                (id = !ft_strncmp(format + *idx, "OI", 2) ? ASN1_OI : 0)) {
+        if ((id = !ft_strncmp(format + *idx, "NUM", 3) ? ASN1_NUMBER : 0)
+                || (id = !ft_strncmp(format + *idx, "OI", 2) ? ASN1_OI : 0)) {
 
             t_asn1_arg *tmp = build_tlv_def(va_arg(*args, t_asn1_arg), id);
             ret->data = ft_join_len(ret->data, ret->len, tmp->data, tmp->len);
@@ -126,11 +122,7 @@ char *asn1_build(char *format, ...) {
     int idx = 0;
     t_asn1_arg *ret = asn1_build_(format, &args, &idx);
     va_end(args);
-    put_fd("output : \n", 2);
-    put_hex_fd(ret->data, ret->len, 2);
-    put_fd("\n", 2);
     char *b64 = encrypt_base64(ret->data, ret->len, NULL);
-    dbg("b64 : %s\n", b64);
     return b64;
 }
 

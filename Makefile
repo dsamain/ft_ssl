@@ -3,7 +3,7 @@ NAME = ft_ssl
 
 SRCS =  $(addprefix src/, \
 			main.c common.c str.c parse.c  \
-			$(addprefix rsa/, genrsa.c rsa.c rsautl.c prime.c asn1.c asn1_build.c) \
+			$(addprefix rsa/, genrsa.c rsa.c rsautl.c prime.c asn1_parse.c asn1_build.c) \
 			$(addprefix cipher/, base64.c des.c) \
 			$(addprefix hash/, md5.c sha224.c sha256.c sha384.c sha512.c padding.c pbkdf2.c hash_out.c) \
 			$(addprefix garbage_collector/, gc.c)) \
@@ -20,6 +20,12 @@ CC = gcc
 
 all: $(NAME)
 
+test: $(NAME)
+	test/test_des.sh
+	test/test_base64.sh
+	test/test_rsa.sh
+
+
 dbg: $(OBJS) 
 	$(CC) $(CFLAGS) -D DEBUG -o $(NAME) $(SRCS) 
 
@@ -34,6 +40,7 @@ clean:
 
 fclean: clean
 	rm -f $(NAME)
+	rm -Rf bin
 
 re: fclean all
 

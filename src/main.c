@@ -43,28 +43,6 @@ void cipher(t_command *command, int ac, char **av) {
 
 int main(int ac, char **av) {
 
-    //test_asn1_build();
-    //return 0;
-    //dbg("bonjour a tous\n");
-    ////dbg("pouet = %d\n", 42);
-
-    //char **tmp = ft_malloc(sizeof(char *) * 3);
-    //tmp[0] = ft_malloc(sizeof(char) * 3, 1);
-    //tmp[1] = ft_malloc(sizeof(char) * 3, 2);
-    //tmp[2] = ft_malloc(sizeof(char) * 3, 42);
-
-    //ft_free(0);
-    //ft_free(1);
-    //ft_free(2);
-    //ft_free(42);
-    //tmp[1] = ft_malloc(sizeof(char) * 3, 2);
-    //tmp[1] = ft_malloc(sizeof(char) * 3, 2);
-    //ft_free(1);
-    //tmp[1] = ft_malloc(sizeof(char) * 3, 2);
-    //dbg("tmp[1] : %s\n", tmp[1]);
-    //throw("wouah\n");
-
-    //return 0;
     if (ac == 1) {
         help();
         return 0;

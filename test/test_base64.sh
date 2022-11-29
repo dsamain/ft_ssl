@@ -1,6 +1,12 @@
-#for i in {0..7}; do
+#!/bin/bash
+
+echo ""
+echo "************** TESTING BASE64 **************"
+echo ""
+
+mkdir -p bin
 i=0
-while true; do
+for i in {0..12}; do
 
     n=$(($RANDOM))
     n=$((n * i))

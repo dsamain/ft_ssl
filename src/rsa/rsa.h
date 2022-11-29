@@ -3,7 +3,7 @@
 #include "../../ft_ssl.h"
 
 #define KEY_SIZE 64 // number of bits in the key
-#define PRECISION 1000 // number of iterations for rabin millerk
+#define PRECISION 10 // number of iterations for rabin millerk
 #define PUBLIC_EXPONENT 65537
 
 typedef u_int64_t ull;

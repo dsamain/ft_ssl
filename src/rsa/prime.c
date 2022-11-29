@@ -61,7 +61,7 @@ u_int8_t is_prime(u_int64_t n, u_int32_t k, u_int32_t *rm_cnt) {
 u_int64_t gen_prime(u_int32_t bits) {
     u_int32_t s_cnt = 0, rm_cnt = 0;
     while (1) {
-        u_int64_t p = rand_range((u_int64_t)1 << (bits-1), ((u_int64_t)1 << bits) - 1);
+        u_int64_t p = rand_range((u_int64_t)1 << (bits-1), ((u_int64_t)1 << bits) - 2);
         if (!sieve_test(p))
             continue;
         s_cnt++;
