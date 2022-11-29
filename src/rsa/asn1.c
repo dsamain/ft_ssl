@@ -58,8 +58,6 @@ void append_asn1_number(char *ret, size_t *idx, char *data, size_t data_len) {
     *idx += elem_len; 
 }
 
-// Convert key to asn1-pem format
-// https://mbed-tls.readthedocs.io/en/latest/kb/cryptography/asn1-key-structures-in-der-and-pem/
 char *rsa_key_pem_64(t_rsa_key *key)
 {
     char *ret = ft_malloc(sizeof(int) * 100);
@@ -101,7 +99,15 @@ void get_asn1_number(u_int8_t *data, size_t *idx, u_int8_t **dest, size_t *dest_
     *dest_len = get_elem_len(data, idx, data_len); 
     if (*dest_len + *idx > data_len)
         throw("Can't parse key");
+        dbg("dest_len : %ld\n", *dest_len);
     *dest = (u_int8_t *)ft_strndup((char *)data + *idx, *dest_len);
+    dbg("AAAAAAAh\n");
+    for (int i = 0; i < *dest_len; i++)
+        dbg("%02x\n", (*dest)[i]);
+    dbg("asn1 num len : %lu\n", *dest_len);
+    put_fd("hex asn1 num :\n", 2);
+    put_hex_fd(*dest, *dest_len, 2);
+    put_fd("\n", 2);
     *idx += *dest_len;
 }
 
@@ -119,111 +125,8 @@ void get_asn1_number(u_int8_t *data, size_t *idx, u_int8_t **dest, size_t *dest_
       // INTEGER (2048 bit) 270948206434524864376531386076272800126502343643226434441426240139087…
       // INTEGER 65537
 
-void asn1_private_to_public(t_rsa_private_asn1 *private_key) {
-    // max size of ret : 2 (seq1) + 2(seq1.1)  + 11(oi) + 2(NULL) + bit string(seq(2) + integer(modulus) + integer(exponent))
-    //char *ret = ft_malloc(size)
-    char *pref = ft_malloc(17);
-    //3023300D06092A864886F70D0101010500
-    //30230d06092a864886f70d01010105000064%
-    //30 23 30 0D 06 09 2A 86  48 86 F7 0D 01 01 01 05
 
-    char *modulus = tlv_triplet(ASN1_NUMBER, private_key->modulus_len);
-    size_t modul_len = ft_strlen(modulus) + private_key->modulus_len;
-
-    modulus = ft_join_len(modulus, ft_strlen(modulus), (char *)private_key->modulus, private_key->modulus_len);
-
-    char *exponent = tlv_triplet(ASN1_NUMBER, private_key->publicExponent_len);
-    size_t exp_len = ft_strlen(exponent) + private_key->publicExponent_len;
-
-    exponent = ft_join_len(exponent, ft_strlen(exponent), (char *)private_key->publicExponent, private_key->publicExponent_len);
-
-    char *seq1 = tlv_triplet(ASN1_SEQUENCE, modul_len + exp_len);
-    size_t seq1_len = ft_strlen(seq1);
-    seq1 = ft_join_len(seq1, ft_strlen(seq1), modulus, modul_len);
-    seq1_len += modul_len;
-    seq1 = ft_join_len(seq1, seq1_len, exponent, exp_len);
-    seq1_len += exp_len;
-
-    char *bit_string = tlv_triplet(ASN1_BIT_STRING, seq1_len);
-    size_t bit_len = ft_strlen(bit_string);
-    bit_string = ft_join_len(bit_string, ft_strlen(bit_string), "\x00", 1);
-    bit_len++;
-    bit_string = ft_join_len(bit_string, bit_len, seq1, seq1_len);
-    bit_len += seq1_len;
-
-
-    char *obj_id = tlv_triplet(ASN1_OI, 9);
-    size_t obj_len = ft_strlen(obj_id);
-    obj_id = ft_join_len(obj_id, ft_strlen(obj_id), "\x2a\x86\x48\x86\xf7\x0d\x01\x01\x01", 9);
-    obj_len += 9;
-    obj_id = ft_join_len(obj_id, obj_len, "\x05\x00", 2);
-    obj_len += 2;
-
-    char *seq2 = tlv_triplet(ASN1_SEQUENCE, obj_len);
-    size_t seq2_len = ft_strlen(seq2);
-    seq2 = ft_join_len(seq2, seq2_len, obj_id, obj_len);
-    seq2_len += obj_len;
-
-    char *ret = tlv_triplet(ASN1_SEQUENCE, bit_len + seq2_len);
-    size_t ret_len = ft_strlen(ret);
-    ret = ft_join_len(ret, ret_len, seq2, seq2_len);
-    ret_len += seq2_len;
-    ret = ft_join_len(ret, ret_len, bit_string, bit_len);
-    ret_len += bit_len;
-
-    PUT("oi:\n");
-    put_hex_fd((u_int8_t *)obj_id, obj_len, 1);
-    PUT("\n");
-
-    PUT("seq2:\n");
-    put_hex_fd((u_int8_t *)seq2, seq2_len, 1);
-    PUT("\n");
-
-    PUT("bit_string:\n");
-    put_hex_fd((u_int8_t *)bit_string, bit_len, 1);
-    PUT("\n");
-
-    PUT("seq1:\n");
-    put_hex_fd((u_int8_t *)seq1, seq1_len, 1);
-    PUT("\n");
-
-    PUT("--RET--\n");
-    put_hex_fd((u_int8_t *)ret, ret_len, 1);
-    PUT("\n");
-
-    char *b64 = encrypt_base64(ret, ret_len, NULL);
-
-    PUT("b64:\n");
-    PUT(b64);
-    PUT("\n");
-
-
-
-
-
-    ft_memcpy(pref, "\x30\x23\x30\x0D\x06\x09\x2A\x86\x48\x86\xF7\x0D\x01\x01\x01\x05\x00\x00", 17);
-
-    size_t size = private_key->modulus_len 
-                + private_key->publicExponent_len
-                + ft_strlen(tlv_triplet(ASN1_NUMBER, private_key->modulus_len)) 
-                + ft_strlen(tlv_triplet(ASN1_NUMBER, private_key->publicExponent_len));
-    dbg("size : %zu\n", size);
-    dbg("bitstring size : %d \n", ft_strlen(tlv_triplet(ASN1_BIT_STRING, size)));
-    size += ft_strlen(tlv_triplet(ASN1_BIT_STRING, size)) + 2; 
-
-
-    dbg ("size : %zu\n", size + 17);
-
-
-
-
-    //char *b64 = encrypt_base64(pref, 17, NULL);
-    //dbg("b64 : %s\n", b64);
-    //put_fd("pref :\n", 2);
-    //put_hex((u_int8_t *)pref, 18);
-    //(void)private_key;
-}
-
+// NEED TO BE IMPROVED
 u_int8_t *extract_data(char *content, size_t *start, size_t *len, char *header, char *footer) {
     if (ft_strncmp(content, header, ft_strlen(header)) != 0)
         throw("Invalid header\n");
@@ -333,9 +236,6 @@ t_rsa_public_asn1 parse_public_key(t_rsa_args *args) {
     get_asn1_number(data, &idx, &key.publicKey, &key.publicKey_len, data_len); // modulus ( public key)
     get_asn1_number(data, &idx, &key.publicExponent, &key.publicExponent_len, data_len); // public exponent
 
-    PUT("public key:\n");
-    put_hex_fd(key.publicKey, key.publicKey_len, 1);
-    PUT("\n");
 
     PUT("public exponent:\n");
     put_hex_fd(key.publicExponent, key.publicExponent_len, 1);

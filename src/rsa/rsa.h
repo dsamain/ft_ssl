@@ -37,7 +37,7 @@ typedef struct s_rsa_args {
 typedef struct s_rsautl_args {
     int out_fd;
     int in_fd;
-    int in_key_fd;
+    int inkey_fd;
     char *content;
     char *key;
     size_t content_len;
@@ -112,6 +112,10 @@ typedef struct s_asn1_arg {
 #define RSA_FLAG_CHECK 1 << 10
 #define RSA_FLAG_PUBIN 1 << 11
 #define RSA_FLAG_PUBOUT 1 << 12
+#define RSA_FLAG_INKEY 1 << 13
+#define RSA_FLAG_HEXDUMP 1 << 14
+#define RSA_FLAG_ENCRYPT 1 << 15
+#define RSA_FLAG_DECRYPT 1 << 16
 
 
 

@@ -47,6 +47,10 @@ void genrsa(int ac, char **av) {
     key.d2 = key.d % (key.q - 1);
     key.qinv = invmod(key.q, key.p);
 
+    dbg("n d e : %lu %lu %lu", key.n, key.d, key.e);
+
+    // Convert key to asn1-pem format
+    // https://mbed-tls.readthedocs.io/en/latest/kb/cryptography/asn1-key-structures-in-der-and-pem/
     char *output = asn1_build("  \
         SEQ { NUM NUM NUM NUM NUM NUM NUM NUM NUM }", 
         ull_to_arg(0), ull_to_arg(key.n), ull_to_arg(key.e), ull_to_arg(key.d), ull_to_arg(key.p), 

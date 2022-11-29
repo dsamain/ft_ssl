@@ -147,6 +147,7 @@ void put_hex_fd(u_int8_t *n, int size, int fd) {
             return ;
         } else {
             n++;
+            size--;
         }
     }
     for (int i = 0; i < size; i++) {

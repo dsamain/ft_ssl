@@ -40,7 +40,9 @@ void parse_rsa(int ac, char **av, t_rsa_args *args, int *flags){
                 throw(cat("ft_ssl: rsa: option ", av[i], " requires an argument\n"));
             i++;
             *flags |= RSA_FLAG_OUT;
-            args->in_fd = open(av[i], O_RDONLY);
+            args->out_fd = open(av[i], O_WRONLY | O_CREAT | O_TRUNC, 0644); 
+            if (args->out_fd < 0)
+                throw(cat("ft_ssl: rsa: ", av[i], ": can't open file\n"));
         } else if (!ft_strcmp("-passout", av[i])) {
             if (i == ac - 1)
                 throw(cat("ft_ssl: rsa: option ", av[i], " requires an argument\n"));
@@ -85,7 +87,7 @@ void rsa(int ac, char **av) {
     // if public to private -> error
 
     // else parse to check error into reprint input
-    
+    dbg("out fd : %d", args.out_fd); 
     // key is private
     if (!(flags & RSA_FLAG_PUBIN)) {
         t_rsa_private_asn1 key = parse_private_key(&args);
@@ -93,18 +95,15 @@ void rsa(int ac, char **av) {
         // private to public
         if (flags & RSA_FLAG_PUBOUT) {
 
-            asn1_private_to_public(&key);
-
             char *asn1 = asn1_build( \
                 "SEQ { \
                     SEQ { \
                         OI \
                         NULL \
                     } BIT_STRING { \
-                        SEQ { \
                             NUM \
                             NUM \
-                    } \
+                        } \
                     } \
                 }",  (t_asn1_arg){"\x2A\x86\x48\x86\xF7\x0D\x01\x01\x01", 9}, 
                 (t_asn1_arg){key.modulus, key.modulus_len}, 
@@ -113,16 +112,17 @@ void rsa(int ac, char **av) {
             put_fd("-----BEGIN PUBLIC KEY-----\n", args.out_fd);
             put_fd(asn1, args.out_fd);
             put_fd("\n-----END PUBLIC KEY-----\n", args.out_fd);
-            //char *b64 = encrypt_base64((char *)key.modulus, key.modulus_len, NULL);
-            //put_fd("public key : \n", args.out_fd);
-            //put_fd(b64,  args.out_fd);
+        } else {
+            for (int i = 0; i < args.content_len; i++)
+                write(args.out_fd, &args.content[i], 1);
         }
+
     } else {
         t_rsa_public_asn1 key = parse_public_key(&args);
-        (void)key;
+        for (int i = 0; i < args.content_len; i++)
+            write(args.out_fd, &args.content[i], 1);
     }
-
-    
-    
-
 }
+
+    
+    
