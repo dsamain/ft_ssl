@@ -22,7 +22,6 @@ t_asn1_arg *build_tlv_len(t_asn1_arg args, int id) {
     if (*args.data >> 7) {
         args.len++;
     }
-
     if (args.len > 127)
         while (args.len >> (bytes * 8))
             bytes++; 
@@ -31,7 +30,7 @@ t_asn1_arg *build_tlv_len(t_asn1_arg args, int id) {
         offset = 1;
 
     t_asn1_arg *ret = ft_malloc(sizeof(t_asn1_arg));
-    ret->len = bytes + 1;
+    ret->len = bytes + 1 + (bytes != 1);
     ret->data = ft_malloc(ret->len);
     ret->data[0] = id;
 

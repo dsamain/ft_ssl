@@ -30,15 +30,17 @@ void get_asn1_number(u_int8_t *data, size_t *idx, u_int8_t **dest, size_t *dest_
 
 // NEED TO BE IMPROVED to 
 u_int8_t *extract_data(char *content, size_t *start, size_t *len, char *header, char *footer) {
-    if (ft_strncmp(content, header, ft_strlen(header)) != 0)
-        throw("Invalid header\n");
+    int i = 0;
+    while (content[*start + i] && ft_strncmp(content + *start + i, header, ft_strlen(header)))
+        i++;
+    if (!content[*start + i])
+        throw("Can't find header\n");
 
-    *start = ft_strlen(header), *len = 0;
+    *start = i + ft_strlen(header), *len = 0;
     while (content[*start + *len] && ft_strncmp(content + *start + *len, footer, ft_strlen(footer)) != 0)
         (*len)++;
-
     if (!content[*start + *len])
-        throw("Invalid footer\n");
+        throw("Can't find footer\n");
     content[*start + *len] = 0;
 
     u_int8_t *data = (u_int8_t *)decrypt_base64(content + *start, *len, len);
@@ -48,10 +50,11 @@ u_int8_t *extract_data(char *content, size_t *start, size_t *len, char *header, 
 
 t_rsa_private_asn1 parse_private_key(t_rsa_args *args) {
     t_rsa_private_asn1 key = INIT_RSA_PRIVATE_ASN1;
-    size_t start, data_len, idx = 0;
+    size_t start = 0, data_len = 0, idx = 0;
     u_int8_t *data = extract_data(args->content, &start, &data_len,
                     "-----BEGIN RSA PRIVATE KEY-----", 
                     "-----END RSA PRIVATE KEY-----");
+
 
     // SEQUENCE (9 elem)
     check_asn1_id(data[idx++], ASN1_SEQUENCE);
@@ -138,9 +141,5 @@ t_rsa_public_asn1 parse_public_key(t_rsa_args *args) {
     get_asn1_number(data, &idx, &key.publicKey, &key.publicKey_len, data_len); // modulus ( public key)
     get_asn1_number(data, &idx, &key.publicExponent, &key.publicExponent_len, data_len); // public exponent
 
-
-    PUT("public exponent:\n");
-    put_hex_fd(key.publicExponent, key.publicExponent_len, 1);
-    PUT("\n");
     return key;
 }

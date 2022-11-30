@@ -96,6 +96,8 @@ char *ft_to_str(void *n, size_t size);
 void put_hex(u_int8_t *a, int size);
 void put_hex_n(u_int64_t a, int size);
 void put_hex_fd(u_int8_t *n, int size, int fd);
+void put_num_fd(__uint128_t n, int fd);
+u_int64_t atoi_ll(u_int8_t *s, size_t len);
 void push_hash_args(t_hash_args **args);
 u_int64_t str_to_u64(char *s);
 u_int8_t *read_fd(int fd, size_t *len);

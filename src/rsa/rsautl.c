@@ -129,10 +129,16 @@ void rsautl(int ac, char **av)  {
     u_int64_t c = 0;
     c = powmod(m, exp, mod);
 
+    if (flags & RSA_FLAG_HEXDUMP)
+        put_fd("0x", 2);
+
     for (int i = 0; i < 8 && c >> (8 - i - 1) ; i++) {
         if (!(c >> ((8 - i - 1) * 8)))
             continue;
         char tmp = (c >> ((8 - i - 1) * 8)) & 0xff;
-        write(args.out_fd, &tmp, 1);
+        if (flags & RSA_FLAG_HEXDUMP)
+            put_hex_fd(&tmp, 1, 2);
+        else
+            write(args.out_fd, &tmp, 1);
     }
 }

@@ -155,3 +155,15 @@ void put_hex_fd(u_int8_t *n, int size, int fd) {
         write(fd, &base[n[i] & 0xf], 1);
     }
 }
+
+void put_num_fd(__uint128_t n, int fd) {
+    if (n > 9) put_num_fd(n / 10, fd);
+    write(fd, &"0123456789"[n % 10], 1);
+}
+
+u_int64_t atoi_ll(u_int8_t *s, size_t len) {
+    u_int64_t ret = 0;
+    for (int i = 0; i < len; i++)
+        ret = ret * 10 + s[i] - '0';
+    return ret;
+}
