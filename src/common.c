@@ -163,7 +163,7 @@ void put_num_fd(__uint128_t n, int fd) {
 
 u_int64_t atoi_ll(u_int8_t *s, size_t len) {
     u_int64_t ret = 0;
-    for (int i = 0; i < len; i++)
+    for (size_t i = 0; i < len; i++)
         ret = ret * 10 + s[i] - '0';
     return ret;
 }

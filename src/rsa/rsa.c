@@ -67,7 +67,7 @@ void show_text(char *s, u_int8_t *n, size_t len, int fd) {
     size_t len2 = len;
     put_fd(s, fd);
     __uint128_t cur = 0;
-    for (int i = 0; i <= len; i++) {
+    for (size_t i = 0; i <= len; i++) {
         if (i && i % 10 == len % 10)
             put_num_fd(cur, fd), cur = 0;
         cur = (cur << 8) | (i < len ? n[i] : 0);
@@ -121,6 +121,7 @@ void put_raw_key(char *key, size_t len, char *header, char *footer, int fd) {
     }
     put_fd(footer, fd);
     put_fd("\n", fd);
+    (void)len;
 }
 
 /* need to parse only header + data + footer */
@@ -151,8 +152,8 @@ void rsa(int ac, char **av) {
                         } \
                     } \
                 }",  (t_asn1_arg){"\x2A\x86\x48\x86\xF7\x0D\x01\x01\x01", 9}, 
-                (t_asn1_arg){key.modulus, key.modulus_len}, 
-                (t_asn1_arg){key.publicExponent, key.publicExponent_len});
+                (t_asn1_arg){(char *)key.modulus, key.modulus_len}, 
+                (t_asn1_arg){(char *)key.publicExponent, key.publicExponent_len});
             
             if (flags & RSA_FLAG_TEXT)
                 private_text(&args, &key);

@@ -8,7 +8,7 @@ for i in {0..7}; do
 
     n=3
 
-    #head -c $n /dev/urandom | base64 | cat > bin/input
+    head -c $n /dev/urandom | base64 | cat > bin/input
 
 
 
@@ -18,6 +18,10 @@ for i in {0..7}; do
     echo -n "TEST $i DIFF : " 
 
     ./ft_ssl rsautl -in bin/input -out bin/output -inkey bin/priv_key.pem -encrypt  #2> /dev/null
+    #sometime message is greater than modulus, so we can't encrypt it
+    if [ $? -ne 0 ]; then 
+        continue
+    fi
     ./ft_ssl rsautl -in bin/output -out bin/output2 -inkey bin/priv_key.pem -decrypt # 2> /dev/null
 
     if cmp -s "bin/output2" "bin/input"; then

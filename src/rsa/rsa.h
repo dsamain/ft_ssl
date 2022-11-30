@@ -148,6 +148,7 @@ static inline u_int64_t mulmod(u_int64_t x, u_int64_t y, u_int64_t mod) {
 // compute (x^y) % mod ( O(log(y) )
 static inline __int128_t powmod(__int128_t x, __int128_t y, __int128_t mod) {
     __int128_t res = 1;
+    x %= mod, y %= mod;
     while (y) {
         if (y & 1)
             res = mulmod(res, x, mod) % mod;

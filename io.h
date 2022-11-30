@@ -7,7 +7,7 @@
     #include <string.h>
     #define dbg(...) {dprintf(2, "[%s:%d] ", __FILE__, __LINE__); dprintf(2, __VA_ARGS__);}
 #else
-    #define dbg(x)
+    #define dbg(...)
 #endif
 
 // io 

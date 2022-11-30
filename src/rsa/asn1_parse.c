@@ -55,7 +55,6 @@ t_rsa_private_asn1 parse_private_key(t_rsa_args *args) {
                     "-----BEGIN RSA PRIVATE KEY-----", 
                     "-----END RSA PRIVATE KEY-----");
 
-
     // SEQUENCE (9 elem)
     check_asn1_id(data[idx++], ASN1_SEQUENCE);
     get_elem_len(data, &idx, data_len);
@@ -105,7 +104,7 @@ t_rsa_private_asn1 parse_private_key(t_rsa_args *args) {
 
 t_rsa_public_asn1 parse_public_key(t_rsa_args *args) {
     t_rsa_public_asn1 key = INIT_RSA_PUBLIC_ASN1;
-    size_t start, data_len, idx = 0;
+    size_t start = 0, data_len, idx = 0;
     u_int8_t *data = extract_data(args->content, &start, &data_len,
                     "-----BEGIN PUBLIC KEY-----",
                     "-----END PUBLIC KEY-----" );

@@ -7,6 +7,7 @@ void check_rsautl_args(t_rsautl_args *args, int flags) {
         throw("only one of -encrypt or -decrypt may be specified\n");
     if ((flags & RSA_FLAG_DECRYPT) && (flags & RSA_FLAG_PUBIN))
         throw("cannot decrypt with public key\n");
+    (void)args;
 }
  
 //ft_ssl rsautl [-in file] [-out file] [-inkey file] [-pubin] [-encrypt] [-decrypt] [-hexdump]
@@ -68,20 +69,20 @@ void get_exp_mod_msg(t_rsautl_args *args, int flags, u_int64_t *exp, u_int64_t *
     rsa_args.content = args->key;
     if (flags & RSA_FLAG_PUBIN) {
         t_rsa_public_asn1 pub = parse_public_key(&rsa_args);
-        exp_str = pub.publicExponent;
+        exp_str = (char *)pub.publicExponent;
         exp_len = pub.publicExponent_len;
-        mod_str = pub.publicKey;
+        mod_str = (char *)pub.publicKey;
         mod_len = pub.publicKey_len;
     } else {
         t_rsa_private_asn1 priv = parse_private_key(&rsa_args);
         if (flags & RSA_FLAG_ENCRYPT) {
-            exp_str = priv.publicExponent;
+            exp_str = (char *)priv.publicExponent;
             exp_len = priv.publicExponent_len;
         } else {
-            exp_str = priv.privateExponent;
+            exp_str = (char *)priv.privateExponent;
             exp_len = priv.privateExponent_len;
         }
-        mod_str = priv.modulus;
+        mod_str = (char *)priv.modulus;
         mod_len = priv.modulus_len;
     }
     while (exp_len > 0 && *exp_str == 0)
@@ -97,16 +98,17 @@ void get_exp_mod_msg(t_rsautl_args *args, int flags, u_int64_t *exp, u_int64_t *
     if (args->content_len > 8)
         throw("ft_ssl: rsautl: message too long (64bit max)\n");
 
-    for (int i = 0; i < exp_len; i++)
+    for (size_t i = 0; i < exp_len; i++)
         *exp = (*exp << 8) | (u_int8_t)exp_str[i];
 
-    for (int i = 0;i < mod_len; i++)
+    for (size_t i = 0;i < mod_len; i++)
         *mod = (*mod << 8) | (u_int8_t)mod_str[i];
 
-    for (int i = 0; i < args->content_len; i++)
+    for (size_t i = 0; i < args->content_len; i++)
         *m = (*m << 8) | (u_int8_t)args->content[i];
 
-    
+    if (*m >= *mod)
+        throw("ft_ssl: rsautl: message too long (modulus - 1 max)\n");
     dbg("exp = %lu, mod = %lu, msg = %lu\n", *exp, *mod, *m);
 }
 
@@ -129,6 +131,8 @@ void rsautl(int ac, char **av)  {
     u_int64_t c = 0;
     c = powmod(m, exp, mod);
 
+    dbg("c : %lu\n", c);
+
     if (flags & RSA_FLAG_HEXDUMP)
         put_fd("0x", 2);
 
@@ -137,7 +141,7 @@ void rsautl(int ac, char **av)  {
             continue;
         char tmp = (c >> ((8 - i - 1) * 8)) & 0xff;
         if (flags & RSA_FLAG_HEXDUMP)
-            put_hex_fd(&tmp, 1, 2);
+            put_hex_fd((u_int8_t *)&tmp, 1, 2);
         else
             write(args.out_fd, &tmp, 1);
     }

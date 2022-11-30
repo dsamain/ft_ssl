@@ -52,7 +52,7 @@ u_int8_t is_prime(u_int64_t n, u_int32_t k, u_int32_t *rm_cnt) {
         }
         if (x != 1)
             return 0;
-        if (j == 0)
+        if (j == 0 && rm_cnt)
             *rm_cnt += 1;
     }
     return 1;

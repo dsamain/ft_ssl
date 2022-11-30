@@ -4,7 +4,7 @@
 t_asn1_arg ull_to_arg(u_int64_t n) {
     t_asn1_arg arg = {0, 0};
     int log = 0;
-    while (((__uint128_t)1 << log + 1) <= n)
+    while (((__uint128_t)1 << (log + 1)) <= n)
         log++;
     arg.len = log / 8 + 1;
     arg.data = ft_malloc(arg.len);
@@ -18,7 +18,6 @@ t_asn1_arg ull_to_arg(u_int64_t n) {
 t_asn1_arg *build_tlv_len(t_asn1_arg args, int id) {
 
     size_t bytes = 1, start = 1, i;
-    u_int8_t offset = 0;
     if (*args.data >> 7) {
         args.len++;
     }
@@ -26,9 +25,6 @@ t_asn1_arg *build_tlv_len(t_asn1_arg args, int id) {
         while (args.len >> (bytes * 8))
             bytes++; 
     
-    if (args.data[0] >> 7)
-        offset = 1;
-
     t_asn1_arg *ret = ft_malloc(sizeof(t_asn1_arg));
     ret->len = bytes + 1 + (bytes != 1);
     ret->data = ft_malloc(ret->len);
@@ -125,7 +121,7 @@ char *asn1_build(char *format, ...) {
     return b64;
 }
 
-void test_asn1_build() {
+/* void test_asn1_build() {
     u_int64_t num = 4242;
     // NUM and OI are associated with variadics parameters in the order they appear
     char *asn1 = asn1_build( \
@@ -140,4 +136,4 @@ void test_asn1_build() {
                } \
             }2 \
         }3",  (t_asn1_arg){"456", 3}, ull_to_arg(255), ull_to_arg(18446744073709551615ULL));
-}
+} */
