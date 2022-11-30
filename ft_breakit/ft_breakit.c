@@ -79,8 +79,9 @@ int main(int ac, char **av) {
     i -= (i % 2 == 0);
     for (; i > 0; i -= 2) {
         if (mod % i == 0 && is_prime2(i)) {
-            printf("found factor :) %u %lu\n", i, mod / i);
+            printf("Found factor: %u %lu\n", i, mod / i);
             return 0;
         }
     }
+    printf("can't break key\n");
 }

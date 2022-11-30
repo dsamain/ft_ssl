@@ -70,35 +70,6 @@ t_rsa_private_asn1 parse_private_key(t_rsa_args *args) {
     get_asn1_number(data, &idx, &key.exponent2, &key.exponent2_len, data_len);
     get_asn1_number(data, &idx, &key.coefficient, &key.coefficient_len, data_len);
 
-    // -- DEBUG --
-    //PUT("version:\n");
-    //put_hex_fd(key.version, key.version_len, 1);
-    //PUT("\n");
-    //PUT("modulus:\n");
-    //put_hex_fd(key.modulus, key.modulus_len, 1);
-    //PUT("\n");
-    //PUT("publicExponent:\n");
-    //put_hex_fd(key.publicExponent, key.publicExponent_len, 1);
-    //PUT("\n");
-    //PUT("privateExponent:\n");
-    //put_hex_fd(key.privateExponent, key.privateExponent_len, 1);
-    //PUT("\n");
-    //PUT("prime1:\n");
-    //put_hex_fd(key.prime1, key.prime1_len, 1);
-    //PUT("\n");
-    //PUT("prime2:\n");
-    //put_hex_fd(key.prime2, key.prime2_len, 1);
-    //PUT("\n");
-    //PUT("exponent1:\n");
-    //put_hex_fd(key.exponent1, key.exponent1_len, 1);
-    //PUT("\n");
-    //PUT("exponent2:\n");
-    //put_hex_fd(key.exponent2, key.exponent2_len, 1);
-    //PUT("\n");
-    //PUT("coefficient:\n");
-    //put_hex_fd(key.coefficient, key.coefficient_len, 1);
-    //PUT("\n");
-
     return key;
 }
 
